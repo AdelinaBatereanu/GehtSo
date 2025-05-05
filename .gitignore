@@ -1,0 +1,19 @@
+# Byte‑compiled / optimized files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# macOS Finder files
+.DS_Store
+
+# Logs and databases
+*.log
+*.sqlite3
