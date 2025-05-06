@@ -18,13 +18,22 @@ headers = {
     "X-Api-Key": API_KEY
 }
 
-def main():
+def fetch_offers():
     response = requests.get(BASE_URL, params=params, headers=headers)
-    print("Status code:", response.status_code) # 200 OK; 400 bad request; 401 autorisation failed; 500 server error
+    if response.status_code != 200:
+        return []
     text_stream = io.StringIO(response.text)
     reader = csv.DictReader(text_stream)
-    for row in reader:
-        print(row)
+    return list(reader)
+
+def main():
+    offers = fetch_offers()
+    # for row in reader:
+    #     name = row["providerName"]
+    #     cost_in_cent = int(row["monthlyCostInCent"])
+    #     cost = cost_in_cent / 100
+    #     duration = int(row["durationInMonths"])
+    #     print(f" - {name}: {cost:.2f} per month over {duration} months")
 
 if __name__ == "__main__":
     main()
