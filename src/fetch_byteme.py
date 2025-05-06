@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 API_KEY = os.getenv("BYTEME_API_KEY")
-BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data"
+BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data/"
 headers = {
     "X-Api-Key": API_KEY
 }
@@ -26,6 +26,7 @@ def fetch_offers(street, house_number, city, plz):
 }
     response = requests.get(BASE_URL, params=params, headers=headers)
     if response.status_code != 200:
+        # TODO: change later to exception
         return []
     text_stream = io.StringIO(response.text)
     reader = csv.DictReader(text_stream)
@@ -83,7 +84,9 @@ def main(street, house_number, city, plz):
     raw = fetch_offers(street, house_number, city, plz)
     if not raw:
         return []
+    # TODO use pandas instead of dict
+    # TODO dict as parameter insted of 4 parameters (street etc)
     return [parse_offer(r) for r in raw]
 
 if __name__ == "__main__":
-    main("Musterstraße", "7", "Berlin", "12345")
+    main("Meisentraße", "7", "Höhenkirchen-Siegertsbrunn", "85635")
