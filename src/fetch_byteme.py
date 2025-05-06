@@ -24,16 +24,51 @@ def fetch_offers():
         return []
     text_stream = io.StringIO(response.text)
     reader = csv.DictReader(text_stream)
+    print(response.status_code)
     return list(reader)
 
 def main():
     offers = fetch_offers()
-    # for row in reader:
-    #     name = row["providerName"]
-    #     cost_in_cent = int(row["monthlyCostInCent"])
-    #     cost = cost_in_cent / 100
-    #     duration = int(row["durationInMonths"])
-    #     print(f" - {name}: {cost:.2f} per month over {duration} months")
+    if not offers:
+        print("No offers found")
+        return
+    for offer in offers:
+        name = offer["providerName"]
+        speed = int(offer["speed"])
+        cost_in_cent = int(offer["monthlyCostInCent"])
+        cost = cost_in_cent / 100
+        duration = int(offer["durationInMonths"])
+        after_two_years_cost_in_cent = int(offer["afterTwoYearsMonthlyCost"])
+        after_two_years_cost = after_two_years_cost_in_cent / 100
+        connection_type = offer["connectionType"]
+        installation = offer["installationService"]
+        installation = True if installation == "true" else False
+        tv = offer["tv"]
+        max_age = offer["maxAge"]
+        max_age = int(max_age) if max_age else None
+        voucher_type = offer["voucherType"]
+        voucher_value = offer["voucherValue"]
+        voucher_value = int(voucher_value) if voucher_value else 0
+        if voucher_value == 0:
+            voucher_desc = ""     # no voucher
+        elif voucher_type == "percentage":
+            voucher_desc = f"{voucher_value}% off"
+        else:
+            voucher_desc = f"{voucher_value} ({voucher_type})" # in case voucher_type not "percentage"
+        unlimited = False if offer["limitFrom"] else True
+        # if max_age is not None:
+        #     age_text = f", for people under {max_age}"
+        # else:
+        #     age_text = ""
+        # print(
+        #     f" - {name}: {speed} Mbps for {cost:.2f} for the first {duration} months,", 
+        #     f"{voucher_desc if voucher_desc else ''}", 
+        #     f"{after_two_years_cost:.2f} after,",
+        #     f"{'Unlimited' if unlimited else 'Capped'} data",
+        #     age_text
+        #     )
+       
+   
 
 if __name__ == "__main__":
     main()
