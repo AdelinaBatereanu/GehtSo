@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 API_KEY = os.getenv("BYTEME_API_KEY")
-BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data/"
+BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data"
 headers = {
     "X-Api-Key": API_KEY
 }
