@@ -64,6 +64,8 @@ def tv(row):
     return row['tv']
 
 def transform_offers(offers):
+    # TODO: change to float
+    # TODO: maybe add discount duration
     offers['provider'] = 'ByteMe'
     offers['name'] = offers['providerName']
     offers['speed_mbps'] = offers['speed'].astype(int)
