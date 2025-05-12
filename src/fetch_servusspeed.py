@@ -48,6 +48,34 @@ def fetch_offers(product_ids, address, max_workers=5):
 # TODO: compare how much time a requests needs (find library for it)
 # TODO: google how ThreadPoolExecutor works
 
+def transform_offer(offer):
+    product = offer["servusSpeedProduct"]
+    info = product["productInfo"]
+    pricing = product["pricingDetails"]
+    # TODO: fix voucher problem
+    return {
+        "name": product["providerName"],
+        "speed_mbps":         info["speed"],
+        "cost_eur":           float(pricing["monthlyCostInCent"]) / 100,
+        # "voucher_eur":        float(pricing.get("discount")) / 100,
+        "duration_months":    info["contractDurationInMonths"],
+        "connection_type":    info["connectionType"],
+        "installation_included": bool(pricing["installationService"]),
+        "tv":                  info.get("tv"),        # might be None
+        "max_age_limit":       int(info.get("maxAge")),    # might be None
+        "is_unlimited":        False  
+    }
+
+def main(address):
+    product_ids = fetch_available_products(address)
+    offers = []
+    for pid in product_ids:
+        raw = fetch_details(pid, address)
+        normalized = transform_offer(raw)
+        offers.append(normalized)
+
+    return offers
+
 if __name__ == "__main__":
     test_address = {
         "strasse": "Hauptstraße",
@@ -56,11 +84,5 @@ if __name__ == "__main__":
         "stadt": "Berlin",
         "land": "DE"
     }
-    products = fetch_available_products(test_address)
-
-    # 2) Fetch their details in parallel
-    detailed_jsons = fetch_offers(products, test_address, max_workers=5)
-
-    # 3) Just print the first few to verify
-    for dj in detailed_jsons[:5]:
-        print(dj)
+    all_offers = main(test_address)
+    print("All normalized offers:", all_offers)
