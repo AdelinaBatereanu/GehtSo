@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os, requests
 from requests.auth import HTTPBasicAuth
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import pandas as pd
 
 load_dotenv()
 USER = os.getenv("SERVUSSPEED_USERNAME")
@@ -19,7 +20,10 @@ def fetch_available_products(address):
     resp = requests.post(url, json=payload, auth=auth)
     resp.raise_for_status()
     data = resp.json()
-    return data["availableProducts"]        
+    product_ids = data.get("availableProducts")
+    if not isinstance(product_ids, list):
+        raise ValueError(f"Expected list of IDs, got {product_ids!r}")
+    return product_ids       
 
 def fetch_details(product_id, address):
     url = BASE_URL + "/api/external/product-details/" + product_id
@@ -68,13 +72,15 @@ def transform_offer(offer):
 
 def main(address):
     product_ids = fetch_available_products(address)
-    offers = []
-    for pid in product_ids:
-        raw = fetch_details(pid, address)
-        normalized = transform_offer(raw)
-        offers.append(normalized)
-
-    return offers
+    print(f"Found {len(product_ids)} product IDs")
+    offers = fetch_offers(product_ids, address)
+    normalized_offers = []
+    for offer in offers:
+        normalized = transform_offer(offer)
+        normalized_offers.append(normalized)
+    df = pd.DataFrame(normalized_offers)
+    print(df.head())
+    return df
 
 if __name__ == "__main__":
     test_address = {
@@ -84,5 +90,4 @@ if __name__ == "__main__":
         "stadt": "Berlin",
         "land": "DE"
     }
-    all_offers = main(test_address)
-    print("All normalized offers:", all_offers)
+    main(test_address)
