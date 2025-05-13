@@ -5,6 +5,7 @@ import hmac
 import hashlib
 import requests
 import json
+import pandas as pd
 
 load_dotenv() 
 client_id = os.getenv("PINGPERFECT_CLIENT_ID")
@@ -51,4 +52,34 @@ def fetch_ping_perfect(street, plz, house_number, city, wants_fiber):
     print(results[:5])
     return results
 
-fetch_ping_perfect("Meisenstrasse", "85635", "7", "Höhenkirchen-Siegertsbrunn", True)
+def transform_offer(offer):
+    # product = offer["providerName"]
+    info = offer["productInfo"]
+    pricing = offer["pricingDetails"]
+    return {
+        "name": offer["providerName"],
+        "speed_mbps":           info["speed"],
+        "cost_eur":             float(pricing["monthlyCostInCent"]) / 100,
+        "duration_months":      info["contractDurationInMonths"],
+        "connection_type":      info["connectionType"],
+        "installation_included": pricing["installationService"] != "no",
+        "tv":                   info.get("tv"),
+        "max_age_limit":        info.get("maxAge"),
+        "limit_from":           info.get("limitFrom"),
+        "is_unlimited":         True if info.get("limitFrom") else False
+    }
+# TODO: change None to N/A for pandas
+
+def main(street, plz, house_number, city):
+    fiber_offers = fetch_ping_perfect(street, plz, house_number, city, True)
+    non_fiber_offers = fetch_ping_perfect(street, plz, house_number, city, False)
+    offers = fiber_offers + non_fiber_offers
+    normalized_offers = []
+    for offer in offers:
+        normalized = transform_offer(offer)
+        normalized_offers.append(normalized)
+    df = pd.DataFrame(normalized_offers)
+    print(df.head())
+    return df
+
+main("Meisenstrasse", "85635", "7", "Höhenkirchen-Siegertsbrunn")
