@@ -5,6 +5,11 @@ import os
 import pandas as pd
 # import numpy as np
 
+load_dotenv()
+API_KEY = os.getenv("BYTEME_API_KEY")
+headers = {"X-Api-Key": API_KEY}
+
+BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data"
 
 def fetch_offers(address):
     """
@@ -18,12 +23,7 @@ def fetch_offers(address):
 #     "city":        city[str],
 #     "plz":         plz[str]
 # }    
-    load_dotenv()
-    API_KEY = os.getenv("BYTEME_API_KEY")
-    headers = {"X-Api-Key": API_KEY}
     
-    BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data"
-
     response = requests.get(BASE_URL, params=address, headers=headers)
     # print(response.status_code)
     response.raise_for_status()
@@ -65,8 +65,8 @@ def transform_offers(offers):
     offers['speed_mbps'] = offers['speed'].astype(int)
     offers['cost_eur'] = offers['monthlyCostInCent'].astype(float) / 100
     offers['duration_months'] = offers['durationInMonths'].astype(int)
-    offers['post_promo_eur'] = offers['afterTwoYearsMonthlyCost'].astype(float) / 100
-    offers['connection_type'] = offers['connectionType']
+    offers['after_two_years_eur'] = offers['afterTwoYearsMonthlyCost'].astype(float) / 100
+    offers['connection_type'] = offers['connectionType'].str.lower()
     offers['installation_included'] = offers['installationService'] == 'true'
     offers['tv'] = offers.apply(tv, axis=1)
     offers['max_age'] = offers.apply(max_age, axis=1)
@@ -74,16 +74,18 @@ def transform_offers(offers):
     mask = offers['voucherType'] == 'percentage'
     offers.loc[mask, 'voucher_percent'] = offers.loc[mask].apply(voucher_value, axis=1)
     offers.loc[mask, 'voucher_fixed_eur'] = pd.NA
+    offers.loc[mask, 'promo_price'] = offers.loc[mask, 'cost_eur'] - (offers.loc[mask, 'cost_eur'] * offers.loc[mask, 'voucher_percent'] / 100)
 
     offers.loc[~mask, 'voucher_fixed_eur'] = offers.loc[~mask].apply(voucher_value, axis=1) / 100
     offers.loc[~mask, 'voucher_percent'] = pd.NA
-
-    offers['limit_from_mbps'] = offers.apply(limit, axis=1)
+    offers.loc[~mask, 'promo_price'] = offers.loc[~mask, 'cost_eur'] - (offers.loc[~mask, 'voucher_fixed_eur']) / 24
+# TODO: check if 24 is correct (or better duration months)
+    offers['limit_from_mbps'] = offers.apply(limit, axis=1).astype(int)
     offers['unlimited'] = offers.apply(unlimited, axis=1)
 
     order = [
-        'provider', 'product_id', 'name', 'speed_mbps', 'cost_eur', 'duration_months',
-        'post_promo_eur', 'connection_type', 'installation_included', 'tv',
+        'provider', 'product_id', 'name', 'speed_mbps', 'cost_eur', 'promo_price', 'duration_months',
+        'after_two_years_eur', 'connection_type', 'installation_included', 'tv',
         'max_age', 'voucher_fixed_eur', 'voucher_percent',
         'unlimited', 'limit_from_mbps'
     ]

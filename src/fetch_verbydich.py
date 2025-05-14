@@ -3,13 +3,12 @@ from dotenv import load_dotenv
 import os
 import re
 import pandas as pd
+from utils import make_api_safe
 
 load_dotenv()
-BASE_URL = "https://verbyndich.gendev7.check24.fun/check24/data"
 API_KEY = os.getenv("VERBYNDICH_API_KEY")
 
-# TODO: check for umlaut (encode utf-8)
-address = "Meisenstrasse;7;Hohenkirchen-Siegertsbrunn;85635"
+BASE_URL = "https://verbyndich.gendev7.check24.fun/check24/data"
 
 def fetch_verbyndich_page(address, page):
     params = {
@@ -38,29 +37,41 @@ def parse_description(desc):
         data["cost_eur"] = float(m.group(1))
     m = re.search(r"(\w+)-Verbindung", desc)
     if m:
-        data["connection_type"] = m.group(1)
-        # TODO: make all connection types the same format (lowercase, english)
+        data["connection_type"] = m.group(1).lower()
     m = re.search(r"einer Geschwindigkeit von (\d+) Mbit/s", desc)
     if m: 
         data["speed_mbps"] = int(m.group(1))
+    m = re.search(r"Zusätzlich sind folgende Fernsehsender enthalten (\w+)\.", desc)
+    if m:
+        data["tv"] = m.group(1)
     m = re.search(r"Mindestvertragslaufzeit (\d+) Monate", desc)
     if m:
         data["duration_months"] = int(m.group(1))
+    m = re.search(r"nur für Personen unter (\d+) Jahren", desc)
+    if m:
+        data["max_age"] = int(m.group(1))
     m = re.search(r"Ab (\d+)GB pro Monat wird die Geschwindigkeit gedrosselt", desc)
     if m:
-        data["limit_from"] = int(m.group(1))
-    m = re.search(r"einen Rabatt von (\d+)%", desc)
+        data["limit_from_mbps"] = int(m.group(1))
+        data["unlimited"] = False
+    else: 
+        data["unlimited"] = True
+    m = re.search(r"Rabatt beträgt (\d+)€", desc)
     if m:
-        data["voucher_value"] = int(m.group(1))
+        data["voucher_fixed"] = float(m.group(1))
     m = re.search(r"monatliche Rechnung bis zum (\d+)\. Monat", desc)
     if m:
         data["promo_duration_months"] = int(m.group(1))
-    m = re.search(r"Rabatt beträgt (\d+)€", desc)
+    m = re.search(r"einen Rabatt von (\d+)%", desc)
     if m:
-        data["max_discount_eur"] = float(m.group(1))
-    m = re.search(r"Ab dem 24\. Monat beträgt der monatliche Preis (\d+)€", desc)
+        data["voucher_percent"] = int(m.group(1))
+        if data["cost_eur"] * data["voucher_percent"] /100 * data["promo_duration_months"] < data["voucher_fixed"]:
+            data["promo_price"] = data["cost_eur"] - data["cost_eur"] * data["voucher_percent"] / 100
+        else: 
+            data["promo_price"] = data["cost_eur"] - data["voucher_fixed"] / data["promo_duration_months"]
+    m = re.search(r"Monat beträgt der monatliche Preis (\d+)€", desc)
     if m:
-        data["post_promo_eur"] = float(m.group(1))
+        data["after_two_years_eur"] = float(m.group(1))
     return data
 
 def transform_offers(all_offers, provider="VerbynDich"):
@@ -78,9 +89,14 @@ def transform_offers(all_offers, provider="VerbynDich"):
     return df
 
 def main(address):
-    raw = fetch_all_offers(address)
-    df = transform_offers(raw)
-    print(df.head())
+    offers = fetch_all_offers(address)
+    # print(offers[:20])
+    df = transform_offers(offers)
+    return df
         
 if __name__ == "__main__":
-    main(address)
+    address = make_api_safe("Meisenstrasse;7;Höhenkirchen-Siegertsbrunn;85635")
+    # print(address)
+    df = main(address)
+    pd.set_option('display.max_columns', None)
+    print(df.head(10))
