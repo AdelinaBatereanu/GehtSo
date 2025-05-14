@@ -18,4 +18,5 @@ venv/
 *.log
 *.sqlite3
 
+# API keys
 .env
