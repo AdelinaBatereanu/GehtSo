@@ -3,7 +3,7 @@ import io
 from dotenv import load_dotenv
 import os
 import pandas as pd
-# import numpy as np
+import numpy as np
 
 load_dotenv()
 API_KEY = os.getenv("BYTEME_API_KEY")
@@ -39,15 +39,15 @@ installationService,tv,limitFrom,maxAge,voucherType,voucherValue
 
 def max_age(row):
     if pd.isna(row['maxAge']):
-        return pd.NA
+        return np.nan
     return int(row['maxAge'])
 def voucher_value(row):
     if pd.isna(row['voucherValue']):
-        return 0
+        return np.nan
     return int(row['voucherValue'])
 def limit(row):
     if pd.isna(row['limitFrom']):
-        return pd.NA
+        return np.nan
     return int(row['limitFrom'])
 def unlimited(row):
     if pd.isna(row['limitFrom']):
@@ -73,11 +73,11 @@ def transform_offers(offers):
     
     mask = offers['voucherType'] == 'percentage'
     offers.loc[mask, 'voucher_percent'] = offers.loc[mask].apply(voucher_value, axis=1)
-    offers.loc[mask, 'voucher_fixed_eur'] = pd.NA
+    offers.loc[mask, 'voucher_fixed_eur'] = np.nan
     offers.loc[mask, 'promo_price'] = offers.loc[mask, 'cost_eur'] - (offers.loc[mask, 'cost_eur'] * offers.loc[mask, 'voucher_percent'] / 100)
 
     offers.loc[~mask, 'voucher_fixed_eur'] = offers.loc[~mask].apply(voucher_value, axis=1) / 100
-    offers.loc[~mask, 'voucher_percent'] = pd.NA
+    offers.loc[~mask, 'voucher_percent'] = np.nan
     offers.loc[~mask, 'promo_price'] = offers.loc[~mask, 'cost_eur'] - (offers.loc[~mask, 'voucher_fixed_eur']) / 24
 # TODO: check if 24 is correct (or better duration months)
     offers['limit_from_mbps'] = offers.apply(limit, axis=1).astype(int)
@@ -100,6 +100,7 @@ def main(address):
     offers = fetch_offers(address)
     parsed_offers = transform_offers(offers)
     df = pd.DataFrame(parsed_offers)
+    df.drop_duplicates(inplace=True)
     return df
 
 if __name__ == "__main__":
@@ -111,4 +112,4 @@ if __name__ == "__main__":
     }
     df = main(address)
     pd.set_option('display.max_columns', None)
-    print(df.head()) 
+    print(df.head(20)) 
