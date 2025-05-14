@@ -3,40 +3,39 @@ import io
 from dotenv import load_dotenv
 import os
 import pandas as pd
-import numpy as np
+# import numpy as np
 
-load_dotenv()
 
-API_KEY = os.getenv("BYTEME_API_KEY")
-BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data"
-headers = {
-    "X-Api-Key": API_KEY
-}
-
-def fetch_offers(street, house_number, city, plz):
+def fetch_offers(address):
     """
     Contact ByteMe API and retrieves offers for the given address
     Returns: 
         List[Dict]: A list of raw csv rows as dictionaries
     """
-    params = {
-    "street":      street,
-    "houseNumber": house_number,
-    "city":        city,
-    "plz":         plz
-}
-    response = requests.get(BASE_URL, params=params, headers=headers)
-    if response.status_code != 200:
-        # TODO: change later to exception
-        return pd.DataFrame()
+#     address = {
+#     "street":      street[str],
+#     "houseNumber": house_number[str],
+#     "city":        city[str],
+#     "plz":         plz[str]
+# }    
+    load_dotenv()
+    API_KEY = os.getenv("BYTEME_API_KEY")
+    headers = {"X-Api-Key": API_KEY}
+    
+    BASE_URL = "https://byteme.gendev7.check24.fun/app/api/products/data"
+
+    response = requests.get(BASE_URL, params=address, headers=headers)
+    # print(response.status_code)
+    response.raise_for_status()
     offers = pd.read_csv(io.StringIO(response.text))
     return offers
-    # print(response.status_code)
 
-    # csv columns from api response:
-    # productId,providerName,speed,monthlyCostInCent,
-    # afterTwoYearsMonthlyCost,durationInMonths,connectionType,
-    # installationService,tv,limitFrom,maxAge,voucherType,voucherValue
+"""
+csv columns from api response:
+productId,providerName,speed,monthlyCostInCent,
+afterTwoYearsMonthlyCost,durationInMonths,connectionType,
+installationService,tv,limitFrom,maxAge,voucherType,voucherValue
+"""
 
 def max_age(row):
     if pd.isna(row['maxAge']):
@@ -46,10 +45,6 @@ def voucher_value(row):
     if pd.isna(row['voucherValue']):
         return 0
     return int(row['voucherValue'])
-# def max_voucher_value(row):
-#     if row['voucherType'] == 'percentage':
-#         return int(row['voucherValue']) * row['durationInMonths'] * row['afterTwoYearsMonthlyCost']
-#     return int(row['voucherValue'])
 def limit(row):
     if pd.isna(row['limitFrom']):
         return pd.NA
@@ -64,48 +59,54 @@ def tv(row):
     return row['tv']
 
 def transform_offers(offers):
-    # TODO: change to float
-    # TODO: maybe add discount duration
     offers['provider'] = 'ByteMe'
+    offers['product_id'] = offers['productId']
     offers['name'] = offers['providerName']
     offers['speed_mbps'] = offers['speed'].astype(int)
-    offers['cost_eur'] = offers['monthlyCostInCent'].astype(int) / 100
+    offers['cost_eur'] = offers['monthlyCostInCent'].astype(float) / 100
     offers['duration_months'] = offers['durationInMonths'].astype(int)
-    offers['post_promo_eur'] = offers['afterTwoYearsMonthlyCost'].astype(int) / 100
+    offers['post_promo_eur'] = offers['afterTwoYearsMonthlyCost'].astype(float) / 100
     offers['connection_type'] = offers['connectionType']
     offers['installation_included'] = offers['installationService'] == 'true'
     offers['tv'] = offers.apply(tv, axis=1)
     offers['max_age'] = offers.apply(max_age, axis=1)
-    offers['voucher_type'] = offers['voucherType']
-    offers['voucher_value'] = offers.apply(voucher_value, axis=1)
-    # offers['max_voucher_value'] = offers.apply(max_voucher_value, axis=1)
-    offers['limit_from'] = offers.apply(limit, axis=1)
+    
+    mask = offers['voucherType'] == 'percentage'
+    offers.loc[mask, 'voucher_percent'] = offers.loc[mask].apply(voucher_value, axis=1)
+    offers.loc[mask, 'voucher_fixed_eur'] = pd.NA
+
+    offers.loc[~mask, 'voucher_fixed_eur'] = offers.loc[~mask].apply(voucher_value, axis=1) / 100
+    offers.loc[~mask, 'voucher_percent'] = pd.NA
+
+    offers['limit_from_mbps'] = offers.apply(limit, axis=1)
     offers['unlimited'] = offers.apply(unlimited, axis=1)
 
     order = [
-        'provider', 'name', 'speed_mbps', 'cost_eur', 'duration_months',
+        'provider', 'product_id', 'name', 'speed_mbps', 'cost_eur', 'duration_months',
         'post_promo_eur', 'connection_type', 'installation_included', 'tv',
-        'max_age', 'voucher_type', 'voucher_value',
-        'unlimited', 'limit_from'
+        'max_age', 'voucher_fixed_eur', 'voucher_percent',
+        'unlimited', 'limit_from_mbps'
     ]
     return offers[order]
 
-def main(street, house_number, city, plz):
+def main(address):
     """
     Fetch offers and create a list of parsed dictionaries
     Return:
-        Empty list if no offers found
-        List[Dict] of parced offers
+        pandas.DataFrame: A DataFrame with the offers
     """
-    offers = fetch_offers(street, house_number, city, plz)
+    offers = fetch_offers(address)
     parsed_offers = transform_offers(offers)
-    # if not offers:
-    #     return []
-    # TODO use pandas instead of dict
-    # TODO dict as parameter insted of 4 parameters (street etc)
-    return parsed_offers
+    df = pd.DataFrame(parsed_offers)
+    return df
 
 if __name__ == "__main__":
-    df = main("Meisentraße", "7", "Höhenkirchen-Siegertsbrunn", "85635")
+    address = {
+        "street":      "Meisentraße",
+        "houseNumber": "7",
+        "city":        "Höhenkirchen-Siegertsbrunn",
+        "plz":         "85635"
+    }
+    df = main(address)
     pd.set_option('display.max_columns', None)
     print(df.head()) 
