@@ -67,7 +67,7 @@ def parse_description(desc):
         data["limit_from_gb"] = np.nan
         data["unlimited"] = True
     # seaches for the max voucher value and promo duration
-    data["voucher_fixed"] = float(m.group(1)) if (m := re.search(r"Rabatt beträgt (\d+)€", desc)) else np.nan
+    data["voucher_fixed_eur"] = float(m.group(1)) if (m := re.search(r"Rabatt beträgt (\d+)€", desc)) else np.nan
     data["promo_duration_months"] = int(m.group(1)) if  (m := re.search(r"monatliche Rechnung bis zum (\d+)\. Monat", desc)) else np.nan
     # searches for the voucher percent and calculates the promo price
     discount = re.search(r"einen Rabatt von (\d+)%", desc)
@@ -75,12 +75,12 @@ def parse_description(desc):
         data["voucher_percent"] = int(discount.group(1))
         # if voucher percent applied over voucher duration < max voucher value
         # voucher in percent is used to calculate the promo price
-        if data["cost_eur"] * data["voucher_percent"] /100 * data["promo_duration_months"] < data["voucher_fixed"]:
+        if data["cost_eur"] * data["voucher_percent"] /100 * data["promo_duration_months"] < data["voucher_fixed_eur"]:
             data["promo_price_eur"] = data["cost_eur"] - data["cost_eur"] * data["voucher_percent"] / 100 
         # if voucher percent applied over voucher duration < max voucher value
         # max voucher value is used to calculate the promo price
         else: 
-            data["promo_price_eur"] = data["cost_eur"] - data["voucher_fixed"] / data["promo_duration_months"]
+            data["promo_price_eur"] = data["cost_eur"] - data["voucher_fixed_eur"] / data["promo_duration_months"]
 
     data["after_two_years_eur"] = float(m.group(1)) if (m := re.search(r"Monat beträgt der monatliche Preis (\d+)€", desc)) else np.nan
     return data

@@ -153,7 +153,7 @@ def transform_offer(offer):
     data["installation_included"] = pricing["installationService"]
     data["tv"] = info.get("tv")
     # searches for the limit and sets the unlimited flag
-    data["limit_from_gb"] = info.get("limitFrom") if info.get("limitFrom") else np.nan
+    data["limit_from_gb"] = info["limitFrom"] if info["limitFrom"] is not None else np.nan
     data["is_unlimited"] = False if data["limit_from_gb"] else True 
     
     data["max_age"] = int(info.get("maxAge"))
