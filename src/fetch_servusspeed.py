@@ -1,9 +1,11 @@
 from dotenv import load_dotenv
 import os, requests
 from requests.auth import HTTPBasicAuth
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import numpy as np
+import asyncio
+import aiohttp
+from aiohttp import BasicAuth
 
 load_dotenv()
 USER = os.getenv("SERVUSSPEED_USERNAME")
@@ -12,6 +14,20 @@ PASS = os.getenv("SERVUSSPEED_PASSWORD")
 BASE_URL = "https://servus-speed.gendev7.check24.fun"
 
 def fetch_available_products(address):
+    """
+    Fetch a llist of available product IDs for a given address.
+    Takes around 10-15 seconds to complete.
+    Args:
+        address (dict): {
+                        "strasse": "Hauptstraße",
+                        "hausnummer": "5A",
+                        "postleitzahl": "10115",
+                        "stadt": "Berlin",
+                        "land": "DE"
+                    }
+    Returns:
+        list: A list of available product IDs.
+    """
     url = BASE_URL + "/api/external/available-products"
     auth = HTTPBasicAuth(USER, PASS)
     payload = {"address": address}
@@ -23,80 +39,148 @@ def fetch_available_products(address):
     product_ids = data.get("availableProducts")
     if not isinstance(product_ids, list):
         raise ValueError(f"Expected list of IDs, got {product_ids!r}")
-    return product_ids       
+    return product_ids
 
-def fetch_details(product_id, address):
+async def fetch_details(session, product_id, address, semaphore):
+    """
+    Fetch details for a given product ID.
+    When called separately, a request takes 10-15 seconds to complete.
+    When called in parallel, the time taken grows to around 30-40 seconds depending on the number of requests.
+    Args:
+        session (aiohttp.ClientSession): The aiohttp session to use for the request.
+        product_id (str): The product ID to fetch details for.
+        address (dict): The address to use for the request.
+        semaphore (asyncio.Semaphore): Semaphore to limit concurrent requests.
+    Returns:
+        dict: The details of the product.
+    """
     url = BASE_URL + "/api/external/product-details/" + product_id
-    auth = HTTPBasicAuth(USER, PASS)
+    auth = BasicAuth(USER, PASS)
     payload = {"address": address}
 
-    
-    print(f"Fetching details for product {product_id}")
-    resp = requests.post(url, json=payload, auth=auth)
-    
-    resp.raise_for_status()
-    return resp.json()
+    async with semaphore:
+        # print(f"Fetching details for product {product_id}")
+        async with session.post(url, json=payload, auth=auth) as resp:
+            resp.raise_for_status()
+            # print(f"Successfully fetched details for product {product_id}")
+            return await resp.json()
 
-def fetch_offers(product_ids, address, max_workers=15):
-    offers = [None] * len(product_ids)
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_index = {
-            executor.submit(fetch_details, pid, address): idx
-            for idx, pid in enumerate(product_ids)
-        }
-        for future in as_completed(future_to_index):
-            idx = future_to_index[future]
-            try:
-                offers[idx] = future.result()
-            except Exception as e:
-                print(f"Error fetching {product_ids[idx]}: {e}")
+async def fetch_all_offers(product_ids, address):
+    """
+    Fetch details for all product IDs in parallel.
+    Takes around 2 minutes to complete.
+    Args:
+        product_ids (list): A list of product IDs to fetch details for.
+        address (dict): The address to use for the request.
+    Returns:
+        List[Dict]: A list where each element is a dict with the key
+            "servusSpeedProduct", whose value is a dict containing:
+                providerName (str)
+                productInfo (dict): with keys
+                    - speed (int)
+                    - contractDurationInMonths (int)
+                    - connectionType (str)
+                    - tv (str)
+                    - limitFrom (int)
+                    - maxAge (int)
+                pricingDetails (dict): with keys
+                    - monthlyCostInCent (int)
+                    - installationService (bool)
+                discount (int): fixed amount in cents
+    """
+    semaphore = asyncio.Semaphore(5)
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_details(session, pid, address, semaphore) for pid in product_ids]
+        return await asyncio.gather(*tasks)
+
+"""
+Note: when using the function below, the time taken to fetch all offers is around 3-4 minutes.
+
+def fetch_offers(product_ids, address):
+    offers = []
+    for pid in product_ids:
+        try:
+            print(f"Fetching offer for product {pid}")
+            offer = fetch_details(pid, address)
+            offers.append(offer)
+        except Exception as e:
+            print(f"Error fetching {pid}: {e}")
+            offers.append(None)
     return offers
-# multithreading doesn't work (takes 2 minutes)
-# TODO: compare how much time a requests needs (find library for it)
-# TODO: google how ThreadPoolExecutor works
-
-# for schleife 3,30 min
-# def fetch_offers(product_ids, address):
-#     offers = []
-#     for pid in product_ids:
-#         try:
-#             print(f"Fetching offer for product {pid}")
-#             offer = fetch_details(pid, address)
-#             offers.append(offer)
-#         except Exception as e:
-#             print(f"Error fetching {pid}: {e}")
-#             offers.append(None)
-#     return offers
-   
+"""
 
 def transform_offer(offer):
+    """
+    Transform the offer data into expected format
+    Args:
+        List[Dict]: A list where each element is a dict with the key
+            "servusSpeedProduct", whose value is a dict containing:
+                providerName (str)
+                productInfo (dict): with keys
+                    - speed (int)
+                    - contractDurationInMonths (int)
+                    - connectionType (str)
+                    - tv (str)
+                    - limitFrom (int)
+                    - maxAge (int)
+                pricingDetails (dict): with keys
+                    - monthlyCostInCent (int)
+                    - installationService (bool)
+                discount (int): fixed amount in cents
+        Returns: 
+            dict: A dictionary with the following keys:
+                provider, name, speed_mbps, cost_eur, voucher_fixed_eur, 
+                promo_price_eur, duration_months, connection_type, installation_included,
+                tv, limit_from_gb, is_unlimited, max_age
+                """
     product = offer["servusSpeedProduct"]
     info = product["productInfo"]
     pricing = product["pricingDetails"]
-    # TODO: fix voucher problem
-    return {
-        "name": product["providerName"],
-        "speed_mbps":         info["speed"],
-        "cost_eur":           float(pricing["monthlyCostInCent"]) / 100,
-        # "voucher_eur":        float(pricing.get("discount")) / 100,
-        "duration_months":    info["contractDurationInMonths"],
-        "connection_type":    info["connectionType"],
-        "installation_included": bool(pricing["installationService"]),
-        "tv":                  info.get("tv"),        # might be None
-        "max_age_limit":       int(info.get("maxAge")),    # might be None
-        "is_unlimited":        False  
-    }
+
+    data = {}
+    data["provider"] = "Servus Speed"
+    data["name"] = product["providerName"]
+    data["speed_mbps"] = info["speed"]
+    data["cost_eur"] = float(pricing["monthlyCostInCent"]) / 100
+    # searce for the discount (fixed amount in cents)
+    # promo_price_eur = cost_eur - voucher apllied over 24 months
+    voucher = product.get("discount")
+    data["voucher_fixed_eur"] = (float(voucher) / 100) if voucher else np.nan
+    data["promo_price_eur"] = (data["cost_eur"] - data["voucher_fixed_eur"] / 24) if voucher else data["cost_eur"]
+    
+    data["duration_months"] = info["contractDurationInMonths"]
+    data["connection_type"] = info["connectionType"].lower()
+    data["installation_included"] = pricing["installationService"]
+    data["tv"] = info.get("tv")
+    # searches for the limit and sets the unlimited flag
+    data["limit_from_gb"] = info.get("limitFrom") if info.get("limitFrom") else np.nan
+    data["is_unlimited"] = False if data["limit_from_gb"] else True 
+    
+    data["max_age"] = int(info.get("maxAge"))
+    return data
 
 def main(address):
+    """
+    Fetch and transform offers for a given address.
+    Args:
+        address (dict): {
+                        "strasse": "Hauptstraße",
+                        "hausnummer": "5A",
+                        "postleitzahl": "10115",
+                        "stadt": "Berlin",
+                        "land": "DE"
+                    }
+    Returns:
+        pandas.DataFrame
+    """
     product_ids = fetch_available_products(address)
-    print(f"Found {len(product_ids)} product IDs")
-    offers = fetch_offers(product_ids, address)
+    # print(f"Found {len(product_ids)} product IDs")
+    offers = asyncio.run(fetch_all_offers(product_ids, address))
     normalized_offers = []
     for offer in offers:
         normalized = transform_offer(offer)
         normalized_offers.append(normalized)
     df = pd.DataFrame(normalized_offers)
-    print(df.head())
     return df
 
 if __name__ == "__main__":
@@ -107,4 +191,6 @@ if __name__ == "__main__":
         "stadt": "Berlin",
         "land": "DE"
     }
-    main(test_address)
+    df = main(test_address)
+    pd.set_option('display.max_columns', None)
+    print(df.head())
