@@ -19,6 +19,7 @@ def fetch_available_products(address):
     resp = requests.post(url, json=payload, auth=auth)
     resp.raise_for_status()
     data = resp.json()
+
     product_ids = data.get("availableProducts")
     if not isinstance(product_ids, list):
         raise ValueError(f"Expected list of IDs, got {product_ids!r}")
@@ -27,14 +28,16 @@ def fetch_available_products(address):
 def fetch_details(product_id, address):
     url = BASE_URL + "/api/external/product-details/" + product_id
     auth = HTTPBasicAuth(USER, PASS)
-    payload = {
-        "address": address
-    }
+    payload = {"address": address}
+
+    
+    print(f"Fetching details for product {product_id}")
     resp = requests.post(url, json=payload, auth=auth)
+    
     resp.raise_for_status()
     return resp.json()
 
-def fetch_offers(product_ids, address, max_workers=5):
+def fetch_offers(product_ids, address, max_workers=15):
     offers = [None] * len(product_ids)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_index = {
@@ -48,8 +51,23 @@ def fetch_offers(product_ids, address, max_workers=5):
             except Exception as e:
                 print(f"Error fetching {product_ids[idx]}: {e}")
     return offers
+# multithreading doesn't work (takes 2 minutes)
 # TODO: compare how much time a requests needs (find library for it)
 # TODO: google how ThreadPoolExecutor works
+
+# for schleife 3,30 min
+# def fetch_offers(product_ids, address):
+#     offers = []
+#     for pid in product_ids:
+#         try:
+#             print(f"Fetching offer for product {pid}")
+#             offer = fetch_details(pid, address)
+#             offers.append(offer)
+#         except Exception as e:
+#             print(f"Error fetching {pid}: {e}")
+#             offers.append(None)
+#     return offers
+   
 
 def transform_offer(offer):
     product = offer["servusSpeedProduct"]
