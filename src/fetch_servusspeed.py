@@ -3,6 +3,7 @@ import os, requests
 from requests.auth import HTTPBasicAuth
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
+import numpy as np
 
 load_dotenv()
 USER = os.getenv("SERVUSSPEED_USERNAME")
@@ -13,9 +14,7 @@ BASE_URL = "https://servus-speed.gendev7.check24.fun"
 def fetch_available_products(address):
     url = BASE_URL + "/api/external/available-products"
     auth = HTTPBasicAuth(USER, PASS)
-    payload = {
-        "address": address
-    }
+    payload = {"address": address}
 
     resp = requests.post(url, json=payload, auth=auth)
     resp.raise_for_status()
