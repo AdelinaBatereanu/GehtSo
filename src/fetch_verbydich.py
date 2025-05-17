@@ -11,7 +11,7 @@ API_KEY = os.getenv("VERBYNDICH_API_KEY")
 
 BASE_URL = "https://verbyndich.gendev7.check24.fun/check24/data"
 
-def fetch_verbyndich_page(address, page):
+def fetch_offers_from_page(address, page):
     """
     Contacts Verbyndich API and retrieves offers for the given address
     Args:
@@ -34,11 +34,11 @@ def fetch_all_offers(address):
     """
     all_offers = []
     page = 0
-    data = fetch_verbyndich_page(address, page)
+    data = fetch_offers_from_page(address, page)
     all_offers.append(data)
     while not data["last"]:
         page += 1
-        data = fetch_verbyndich_page(address, page)
+        data = fetch_offers_from_page(address, page)
         all_offers.append(data)
     return all_offers
 
@@ -111,7 +111,7 @@ def transform_offers(all_offers, provider="VerbynDich"):
     df = pd.DataFrame(offers_list)
     return df
 
-def main(address):
+def fetch_verbyndich(address):
     """
     Main function to fetch and transform offers from Verbyndich API
     Args:
@@ -126,6 +126,6 @@ def main(address):
         
 if __name__ == "__main__":
     address = make_api_safe("Meisenstrasse;7;Höhenkirchen-Siegertsbrunn;85635")
-    df = main(address)
+    df = fetch_verbyndich(address)
     pd.set_option('display.max_columns', None)
     print(df.head(10))

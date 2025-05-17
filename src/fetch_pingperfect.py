@@ -32,7 +32,7 @@ def sign_payload(json_body, timestamp, secret):
     )
     return hm.hexdigest()
 
-def fetch_ping_perfect(address, wants_fiber):
+def fetch_offers(address, wants_fiber):
     """
     Fetch offers from the Ping Perfect API for a given address.
     Args:
@@ -100,7 +100,7 @@ def transform_offer(offer):
         "is_unlimited":         False if info.get("limitFrom") else True
     }
 
-def main(address):
+def fetch_pingperfect(address):
     """
     Fetch and transform offers for a given address.
     Args:
@@ -114,8 +114,8 @@ def main(address):
         pd.DataFrame
     """
     # fetch fiber and non-fiber offers separately
-    fiber_offers = fetch_ping_perfect(address, True)
-    non_fiber_offers = fetch_ping_perfect(address, False)
+    fiber_offers = fetch_offers(address, True)
+    non_fiber_offers = fetch_offers(address, False)
     # create one list of offers
     offers = fiber_offers + non_fiber_offers
 
@@ -123,7 +123,7 @@ def main(address):
     for offer in offers:
         normalized = transform_offer(offer)
         normalized_offers.append(normalized)
-        
+
     df = pd.DataFrame(normalized_offers)
     return df
 
@@ -136,6 +136,6 @@ if __name__ == "__main__":
         "city": "Höhenkirchen-Siegertsbrunn",
     }
 
-    df = main(address)
+    df = fetch_pingperfect(address)
     pd.set_option('display.max_columns', None)
     print(df.head(15))

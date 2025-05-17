@@ -159,7 +159,7 @@ def transform_offer(offer):
     data["max_age"] = int(info.get("maxAge"))
     return data
 
-def main(address):
+def fetch_servusspeed(address):
     """
     Fetch and transform offers for a given address.
     Args:
@@ -191,6 +191,6 @@ if __name__ == "__main__":
         "stadt": "Berlin",
         "land": "DE"
     }
-    df = main(test_address)
+    df = fetch_servusspeed(test_address)
     pd.set_option('display.max_columns', None)
     print(df.head())

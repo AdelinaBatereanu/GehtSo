@@ -107,7 +107,7 @@ def parse_offers(response):
     df = pd.DataFrame(parsed)
     return df
 
-def main(address):
+def fetch_webwunder(address):
     """
     Main function to fetch and transform offers from WebWunder API
     """
@@ -132,6 +132,6 @@ if __name__ == "__main__":
         "plz": "52062",
         "countryCode": "DE"
     }
-    df = main(address)
+    df = fetch_webwunder(address)
     pd.set_option('display.max_columns', None)
     print(df.head(40))

@@ -108,7 +108,7 @@ def transform_offers(offers):
     ]
     return offers[order]
 
-def main(address):
+def fetch_byteme(address):
     """
     Fetches offers and creates a pandas.DataFrame with the offers in standardized format
     Args: 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         "city":        "Höhenkirchen-Siegertsbrunn",
         "plz":         "85635"
     }
-    df = main(address)
+    df = fetch_byteme(address)
     pd.set_option('display.max_columns', None)
     print(df.head(20)) 
 
