@@ -8,3 +8,4 @@ import os
 #TODO: add retry mechanisms where needed
 #TODO: check that all columns are the same (name and type)
 #TODO: add error handling
+#TODO: check requirements
