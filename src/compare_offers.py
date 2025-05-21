@@ -79,11 +79,16 @@ def filter_tv(df, tv_required):
     else:
         return df[df["tv"].isna()]
     
-def filter_limit(df, max_limit=None):
-    if max_limit:
-        return df[df["limit_from_gb"] <= max_limit]
-    else:
+def filter_limit(df, min_limit=None):
+    if min_limit == "none":
+        # Only unlimited offers (limit_from_gb is null/NaN)
         return df[df["limit_from_gb"].isna()]
+    elif min_limit is not None:
+        # Offers with limit >= min_limit or unlimited
+        return df[(df["limit_from_gb"].isna()) | (df["limit_from_gb"] >= min_limit)]
+    else:
+        # No filtering
+        return df
     
 def filter_installation(df, installation_required=True):
     if installation_required:

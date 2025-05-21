@@ -24,7 +24,7 @@ def get_offers():
     # cost = request.args.get('cost', default=None, type=float)
     duration = request.args.get('duration', default=None, type=int)
     tv_required = request.args.get('tv', default=None)
-    limit = request.args.get('limit', default=None, type=int)
+    limit = request.args.get('limit', default=None)
     installation_required = request.args.get('installation', default=None)
     connection_types = request.args.get('connection_types', default=None, type=lambda x: x.split(","))
     providers = request.args.get('providers', default=None, type=lambda x: x.split(","))
@@ -54,8 +54,10 @@ def get_offers():
         df = compare_offers.filter_duration(df, duration)
     if tv_required:
         df = compare_offers.filter_tv(df, str2bool(tv_required))
-    if limit:
-        df = compare_offers.filter_limit(df, limit)
+    if limit == "none":
+        df = compare_offers.filter_limit(df, "none")
+    elif limit:
+        df = compare_offers.filter_limit(df, int(limit))
     if installation_required:
         df = compare_offers.filter_installation(df, str2bool(installation_required))
     if connection_types is not None:
