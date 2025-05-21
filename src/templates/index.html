@@ -7,7 +7,8 @@
         /* Highlight active buttons */
         #speed-buttons button.active,
         #limit-buttons button.active,
-        #duration-buttons button.active {
+        #duration-buttons button.active,
+        #tv-buttons button.active {
             background-color: #007bff;
             color: white;
         }
@@ -15,6 +16,24 @@
 </head>
 <body>
     <h1>Compare offers</h1>
+    <!-- Address form -->
+    <div id="address-fields">
+        <label>Street: <input type="text" id="street" name="street"></label>
+        <label>House number: <input type="text" id="house_number" name="house_number"></label>
+        <label>PLZ: <input type="text" id="plz" name="plz"></label>
+        <label>City: <input type="text" id="city" name="city"></label>
+        <button id="search-btn" type="button">Search</button>
+    </div>
+    <div id="age-filter">
+        <label>
+            Age:
+            <input type="number" id="age_input" min="0" placeholder="Enter your age" style="width: 80px;">
+        </label>
+        <label>
+            <input type="checkbox" id="show_all_ages" checked>
+            Show me all offers
+        </label>
+    </div>
     <!-- Filter form -->
     <div id="filters">
         <!-- Minimum speed filter -->
@@ -27,6 +46,13 @@
             <button type="button" data-speed="150">from 150</button>
             <button type="button" data-speed="250">from 250</button>
         </div>    
+
+        <label>TV:</label>
+        <div id="tv-buttons">
+            <button type="button" data-tv="">Show all</button>
+            <button type="button" data-tv="false">Only internet offers</button>
+            <button type="button" data-tv="true">Internet and TV</button>
+        </div>
 
         <!-- Data limit filter -->
         <label>Limit (GB):</label>
@@ -52,6 +78,15 @@
             <button type="button" data-duration="11">Less than a year</button>
             <button type="button" data-duration="12">12 months</button>
             <button type="button" data-duration="24">24 months</button>
+        </div>
+
+        <label>Provider:</label>
+        <div id="provider-checkboxes">
+            <label><input type="checkbox" value="ByteMe" class="provider"> ByteMe</label>
+            <label><input type="checkbox" value="WebWunder" class="provider"> WebWunder</label>
+            <label><input type="checkbox" value="Ping Perfect" class="provider"> PingPerfect</label>
+            <label><input type="checkbox" value="Servus Speed" class="provider"> ServusSpeed</label>
+            <label><input type="checkbox" value="VerbynDich" class="provider"> Verbyndich</label>
         </div>
 
         <!-- Installation included filter -->
@@ -89,17 +124,25 @@
     </table>
 
     <script>
+        let allOffers = [];
         // References to filter elements
+        const searchBtn = document.getElementById('search-btn');
         const installCheckbox = document.getElementById('installation_included');
         const speedButtons = document.querySelectorAll('#speed-buttons button');
         const limitButtons = document.querySelectorAll('#limit-buttons button');
         const connectionTypeCheckboxes = document.querySelectorAll('.connection-type');
         const durationButtons = document.querySelectorAll('#duration-buttons button');
+        const tvButtons = document.querySelectorAll('#tv-buttons button');
+        const providerCheckboxes = document.querySelectorAll('.provider');
+        const ageInput = document.getElementById('age_input');
+        const showAllAgesCheckbox = document.getElementById('show_all_ages');
 
         // State variables for selected filters
         let selectedSpeed = ""; // Default: all speeds
         let selectedLimit = ""; // Default: all limits
         let selectedMaxDuration = ""; // Default: any
+        let selectedTv = ""; // Default: show all
+
 
         // Helper function to get selected connection types
         function getSelectedConnectionTypes() {
@@ -108,28 +151,36 @@
                 .map(cb => cb.value);
         }
 
-        // Function to trigger search and update results
-        function triggerSearch() {
-            const installOnly = installCheckbox.checked;
+        function getSelectedProviders() {
+            return Array.from(providerCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+        }
 
+        function triggerSearch() {
+
+            const streetInput = document.getElementById('street');
+            const houseNumberInput = document.getElementById('house_number');
+            const plzInput = document.getElementById('plz');
+            const cityInput = document.getElementById('city');
+
+            if (
+                !streetInput.value.trim() ||
+                !houseNumberInput.value.trim() ||
+                !plzInput.value.trim() ||
+                !cityInput.value.trim()
+            ) {
+                alert('Please fill in all address fields.');
+                return;
+            }
             // Build query parameters
             const params = new URLSearchParams();
-            if (selectedSpeed) params.set('speed', selectedSpeed);
-            params.set('installation', installOnly);
-            if (selectedLimit === "none") {
-                params.set('limit', "none");
-            } else if (selectedLimit) {
-                params.set('limit', selectedLimit);
-            }
-            if (selectedMaxDuration) {
-                params.set('duration', selectedMaxDuration);
-            }
-            const selectedTypes = getSelectedConnectionTypes();
-            if (selectedTypes.length > 0) {
-                params.set('connection_types', selectedTypes.join(','));
-            }
+            params.set('street', streetInput.value.trim());
+            params.set('house_number', houseNumberInput.value.trim());
+            params.set('plz', plzInput.value.trim());
+            params.set('city', cityInput.value.trim());
 
-            // Update URL and fetch data
+            // Fetch all offers from the server
             const apiUrl = `/offers?${params.toString()}`;
             window.history.replaceState({}, '', `?${params.toString()}`);
             fetch(apiUrl)
@@ -139,8 +190,89 @@
                     }
                     return response.json();
                 })
-                .then(data => updateResults(data))
+                .then(data => {
+                    allOffers = data; // Store all offers
+                    applyFiltersAndUpdateResults();
+                })
                 .catch(err => console.error('Fetch error:', err));
+
+            updateShareUrlAndHistory();
+        }
+        // Function to trigger search and update results
+        function applyFiltersAndUpdateResults() {
+            let filtered = allOffers;
+
+            if (selectedSpeed) {
+                filtered = filtered.filter(o => o.speed_mbps >= Number(selectedSpeed));
+            }
+            if (selectedLimit && selectedLimit !== "none") {
+                filtered = filtered.filter(o => !o.limit_from_gb || o.limit_from_gb >= Number(selectedLimit));
+            }
+            if (selectedLimit === "none") {
+                filtered = filtered.filter(o => !o.limit_from_gb);
+            }
+            if (selectedMaxDuration) {
+                filtered = filtered.filter(o => o.duration_months <= Number(selectedMaxDuration));
+            }
+            if (selectedTv) {
+                filtered = filtered.filter(o => selectedTv === "true" ? o.tv : !o.tv);
+            }
+            const selectedTypes = getSelectedConnectionTypes();
+            if (selectedTypes.length > 0) {
+                filtered = filtered.filter(o => selectedTypes.includes(o.connection_type));
+            }
+            const selectedProviders = getSelectedProviders();
+            if (selectedProviders.length > 0) {
+                filtered = filtered.filter(o => selectedProviders.includes(o.provider));
+            }
+            if (installCheckbox.checked) {
+                filtered = filtered.filter(o => o.installation_included);
+            }
+            if (!showAllAgesCheckbox.checked && ageInput.value.trim() !== "") {
+                const userAge = Number(ageInput.value.trim());
+                if (!isNaN(userAge)) {
+                    filtered = filtered.filter(o => !o.max_age || userAge <= o.max_age);
+                }
+            }
+
+            updateResults(filtered);
+            updateShareUrlAndHistory();
+        }
+
+        function updateShareUrlAndHistory() {
+            const street = document.getElementById('street').value.trim();
+            const houseNumber = document.getElementById('house_number').value.trim();
+            const plz = document.getElementById('plz').value.trim();
+            const city = document.getElementById('city').value.trim();
+
+            const params = new URLSearchParams();
+            if (street) params.set('street', street);
+            if (houseNumber) params.set('house_number', houseNumber);
+            if (plz) params.set('plz', plz);
+            if (city) params.set('city', city);
+
+            if (selectedSpeed) params.set('speed', selectedSpeed);
+            if (selectedLimit) params.set('limit', selectedLimit);
+            if (selectedMaxDuration) params.set('duration', selectedMaxDuration);
+            if (selectedTv) params.set('tv', selectedTv);
+
+            const selectedTypes = getSelectedConnectionTypes();
+            if (selectedTypes.length > 0) params.set('connection_types', selectedTypes.join(','));
+
+            const selectedProviders = getSelectedProviders();
+            if (selectedProviders.length > 0) params.set('providers', selectedProviders.join(','));
+
+            if (installCheckbox.checked) params.set('installation', 'true');
+
+            if (!showAllAgesCheckbox.checked && ageInput.value.trim() !== "") {
+                params.set('age', ageInput.value.trim());
+            }
+
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+
+            // Update the share input field
+            document.getElementById('share_url').value = window.location.href;
         }
 
         // Function to update results table
@@ -176,11 +308,43 @@
 
         // Initialize filters and event listeners
         document.addEventListener('DOMContentLoaded', () => {
+            // Prefill address fields from URL if present
+            const street = getParam('street', '');
+            const houseNumber = getParam('house_number', '');
+            const plz = getParam('plz', '');
+            const city = getParam('city', '');
+
+            document.getElementById('street').value = street;
+            document.getElementById('house_number').value = houseNumber;
+            document.getElementById('plz').value = plz;
+            document.getElementById('city').value = city;
+
+            // If all address fields are present, trigger the search
+            if (street && houseNumber && plz && city) {
+                triggerSearch();
+            }
+
+            // If user types in age, uncheck the "show all offers" box
+            ageInput.addEventListener('input', () => {
+                if (ageInput.value.trim() !== "") {
+                    showAllAgesCheckbox.checked = false;
+                }
+                applyFiltersAndUpdateResults();
+            });
+
+            // If user checks "show all offers", clear the age input
+            showAllAgesCheckbox.addEventListener('change', () => {
+                if (showAllAgesCheckbox.checked) {
+                    ageInput.value = "";
+                }
+                applyFiltersAndUpdateResults();
+            });
+
             // Initialize connection type checkboxes
             const typesFromUrl = getParam('connection_types', '').split(',').filter(Boolean);
             connectionTypeCheckboxes.forEach(cb => {
                 cb.checked = typesFromUrl.includes(cb.value);
-                cb.addEventListener('change', triggerSearch);
+                cb.addEventListener('change', applyFiltersAndUpdateResults);
             });
 
             // Initialize speed buttons
@@ -192,7 +356,7 @@
                     selectedSpeed = b.dataset.speed;
                     speedButtons.forEach(btn => btn.classList.remove('active'));
                     b.classList.add('active');
-                    triggerSearch();
+                    applyFiltersAndUpdateResults();
                 });
             });
 
@@ -205,7 +369,7 @@
                     selectedLimit = b.dataset.limit;
                     limitButtons.forEach(btn => btn.classList.remove('active'));
                     b.classList.add('active');
-                    triggerSearch();
+                    applyFiltersAndUpdateResults();
                 });
             });
 
@@ -218,18 +382,39 @@
                     selectedMaxDuration = b.dataset.duration;
                     durationButtons.forEach(btn => btn.classList.remove('active'));
                     b.classList.add('active');
-                    triggerSearch();
+                    applyFiltersAndUpdateResults();
+                });
+            });
+
+            // Initialize TV buttons
+            selectedTv = getParam('tv', "");
+            tvButtons.forEach(b => {
+                if (b.dataset.tv === selectedTv) b.classList.add('active');
+                else b.classList.remove('active');
+                b.addEventListener('click', () => {
+                    selectedTv = b.dataset.tv;
+                    tvButtons.forEach(btn => btn.classList.remove('active'));
+                    b.classList.add('active');
+                    applyFiltersAndUpdateResults();
                 });
             });
 
             // Initialize installation checkbox
             installCheckbox.checked = getParam('installation', 'false') === 'true';
-            installCheckbox.addEventListener('change', triggerSearch);
+            installCheckbox.addEventListener('change', applyFiltersAndUpdateResults);
+
+            // Initialize provider checkboxes from URL
+            const providersFromUrl = getParam('providers', '').split(',').filter(Boolean);
+            providerCheckboxes.forEach(cb => {
+                cb.checked = providersFromUrl.includes(cb.value);
+                cb.addEventListener('change', applyFiltersAndUpdateResults);
+            });
 
             // Trigger search if URL has query parameters
-            if (window.location.search) {
-                triggerSearch();
-            }
+            // if (window.location.search) {
+            //     triggerSearch();
+            // }
+            searchBtn.addEventListener('click', triggerSearch);
         });
 
         // Helper function to get URL parameter

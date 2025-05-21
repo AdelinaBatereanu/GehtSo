@@ -3,6 +3,7 @@ import compare_offers
 from urllib.parse import urlencode
 import pandas as pd
 import numpy as np
+from utils import make_api_safe
 
 app = Flask(__name__)
 
@@ -19,8 +20,27 @@ def make_share_url(base, params):
 
 @app.route("/offers")
 def get_offers():
+    # --- Require and sanitize address fields ---
+    street = request.args.get('street', default=None)
+    house_number = request.args.get('house_number', default=None)
+    plz = request.args.get('plz', default=None)
+    city = request.args.get('city', default=None)
+
+    # Check all fields are present
+    if not all([street, house_number, plz, city]):
+        return jsonify({"error": "All address fields (street, house_number, plz, city) are required."}), 400
+
+    # Sanitize each field
+    address = {
+        "street": make_api_safe(street),
+        "house_number": make_api_safe(house_number),
+        "plz": make_api_safe(plz),
+        "city": make_api_safe(city)
+    }
+
     sort = request.args.get('sort', default="cost_first_years")
     speed = request.args.get('speed', default=None, type=int)
+    age = request.args.get('age', default=None, type=int)
     # cost = request.args.get('cost', default=None, type=float)
     duration = request.args.get('duration', default=None, type=int)
     tv_required = request.args.get('tv', default=None)
@@ -32,6 +52,7 @@ def get_offers():
     params = {
         "sort": sort,
         "speed": speed,
+        "age": age,
         # "cost": cost,
         "duration": duration,
         "tv_required": tv_required,
@@ -44,10 +65,12 @@ def get_offers():
     share_url = make_share_url(request.host_url, params)
     print(f"Share URL: {share_url}")
 
-    df = compare_offers.get_all_offers()
+    df = compare_offers.get_all_offers(address)
 
     if speed:
         df = compare_offers.filter_speed(df, speed)
+    if age:
+        df = compare_offers.filter_age(df, age)
     # if cost:
     #     df = compare_offers.filter_cost(df, cost)
     if duration:

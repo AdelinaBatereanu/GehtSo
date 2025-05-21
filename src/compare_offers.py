@@ -14,12 +14,12 @@ import logging
 import numpy as np
 
 
-address = {
-    "street": "Hauptstrasse",
-    "house_number": "5A",
-    "plz": "10115",
-    "city": "Berlin"
-}
+# address = {
+#     "street": "Hauptstrasse",
+#     "house_number": "5A",
+#     "plz": "10115",
+#     "city": "Berlin"
+# }
 
 MAX_RETRIES = 3
 RETRY_BACKOFF = 7  # seconds
@@ -36,7 +36,7 @@ def safe_get_offers(get_offers_func, address, provider_name):
                 logging.error(f"[{provider_name}] All retries failed. Returning empty DataFrame.")
                 return pd.DataFrame()
 
-async def fetch_offers():
+async def fetch_offers(address):
     loop = asyncio.get_event_loop()
     tasks = [
         loop.run_in_executor(None, safe_get_offers, get_byteme_offers, address, "ByteMe"),
@@ -47,9 +47,9 @@ async def fetch_offers():
     ]
     return await asyncio.gather(*tasks)
 
-df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers())
 
-def get_all_offers():    
+def get_all_offers(address): 
+    df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers(address))   
     all_offers = pd.concat(
         [df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder],
         ignore_index=True
@@ -112,6 +112,11 @@ def filter_provider(df, providers):
         filtered = df[df["provider"] == provider]
         filtered_by_provider = pd.concat([filtered_by_provider, filtered], ignore_index=True)
     return filtered_by_provider
+
+def filter_age(df, age):
+    if age:
+        return df[(df["age"] >= age) | (df["age"].isna())]
+    return df
 
 def sort_by_first_years_cost(df, ascending=True):
     return df.sort_values(by="cost_first_years_eur", ascending=ascending)
