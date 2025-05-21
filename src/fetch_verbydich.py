@@ -5,43 +5,42 @@ import re
 import pandas as pd
 import numpy as np
 from utils import make_api_safe
+import asyncio
+import aiohttp
 
 load_dotenv()
 API_KEY = os.getenv("VERBYNDICH_API_KEY")
 
 BASE_URL = "https://verbyndich.gendev7.check24.fun/check24/data"
 
-def fetch_offers_from_page(address, page):
+async def fetch_offers_from_page(session, address, page):
     """
-    Contacts Verbyndich API and retrieves offers for the given address
-    Args:
-        address (str): address in the format "street;house_number;city;plz"
-        page (int): page number to fetch
-    Returns:
-        dict: JSON response from the API
+    Async function to fetch offers from a specific page
     """
     params = {
-            "apiKey": API_KEY,
-            "page": page,
-        }
-    response = requests.post(BASE_URL, params=params, data=address, allow_redirects=False, timeout=10)  
-    response.raise_for_status()
-    return response.json()
+        "apiKey": API_KEY,
+        "page": page,
+    }
+    async with session.post(BASE_URL, params=params, data=address, allow_redirects=False, timeout=10) as response:
+        response.raise_for_status()
+        return await response.json()
 
-def fetch_all_offers(address):
+async def fetch_all_offers(address):
     """
-    Fetches all offers for the given address from Verbyndich API
+    Fetches all offers for the given address from Verbyndich API asynchronously
     """
     print("Fetching offers from Verbyndich API...")
     all_offers = []
-    #TODO: make this async
     page = 0
-    data = fetch_offers_from_page(address, page)
-    all_offers.append(data)
-    while not data["last"]:
-        page += 1
-        data = fetch_offers_from_page(address, page)
+
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_offers_from_page(session, address, page)
         all_offers.append(data)
+        while not data["last"]:
+            page += 1
+            data = await fetch_offers_from_page(session, address, page)
+            all_offers.append(data)
+
     return all_offers
 
 def parse_description(desc):
@@ -127,8 +126,7 @@ def get_offers(address_input):
         pandas.DataFrame: DataFrame with the offers
     """
     address = ";".join([address_input[key] for key in ["street", "house_number", "city", "plz"]])
-    offers = fetch_all_offers(address)
-    # print(offers[:20])
+    offers = asyncio.run(fetch_all_offers(address))
     df = transform_offers(offers)
     print(f"Found {len(df)} offers, Verbyndich")
     return df

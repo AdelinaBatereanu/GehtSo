@@ -1,6 +1,4 @@
 from dotenv import load_dotenv
-import os
-from utils import make_api_safe
 import pandas as pd
 pd.set_option('future.no_silent_downcasting', True)
 from fetch_byteme import get_offers as get_byteme_offers
@@ -10,6 +8,8 @@ from fetch_verbydich import get_offers as get_verbyndich_offers
 from fetch_webwunder import get_offers as get_webwunder_offers
 import asyncio
 import time
+import nest_asyncio
+nest_asyncio.apply()
 import logging
 import numpy as np
 
@@ -22,7 +22,7 @@ import numpy as np
 # }
 
 MAX_RETRIES = 3
-RETRY_BACKOFF = 7  # seconds
+RETRY_BACKOFF = 6  # seconds
 
 def safe_get_offers(get_offers_func, address, provider_name):
     for attempt in range(1, MAX_RETRIES + 1):
@@ -47,7 +47,8 @@ async def fetch_offers(address):
     ]
     return await asyncio.gather(*tasks)
 
-
+    loop = asyncio.get_event_loop()
+    df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = loop.run_until_complete(fetch_offers(address))
 def get_all_offers(address): 
     df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers(address))   
     all_offers = pd.concat(
@@ -100,22 +101,14 @@ def filter_connection_types(df, connection_types):
     """
     Args: connection_types (list): list of connection types to filter by
     """
-    filtered_by_connection = pd.DataFrame()
-    for connection_type in connection_types:
-        filtered = df[df["connection_type"] == connection_type]
-        filtered_by_connection = pd.concat([filtered_by_connection, filtered], ignore_index=True)  
-    return filtered_by_connection
+    return df[df["connection_type"].isin(connection_types)]
 
 def filter_provider(df, providers):
-    filtered_by_provider = pd.DataFrame()
-    for provider in providers:
-        filtered = df[df["provider"] == provider]
-        filtered_by_provider = pd.concat([filtered_by_provider, filtered], ignore_index=True)
-    return filtered_by_provider
+    return df[df["provider"].isin(providers)]
 
 def filter_age(df, age):
     if age:
-        return df[(df["age"] >= age) | (df["age"].isna())]
+        return df[(df["max_age"] >= age) | (df["max_age"].isna())]
     return df
 
 def sort_by_first_years_cost(df, ascending=True):
@@ -139,7 +132,13 @@ def mark_missing(cell):
 
 if __name__ == "__main__":
     # pass
-    all_offers = get_all_offers()
+    address = {
+        "street": "Hauptstrasse",
+        "house_number": "5A",
+        "plz": "10115",
+        "city": "Berlin"
+    }
+    all_offers = get_all_offers(address)
     debug_df = all_offers.applymap(mark_missing)
     debug_df.to_csv("df_check.csv", index=False)
     # pd.set_option('display.max_columns', None)
