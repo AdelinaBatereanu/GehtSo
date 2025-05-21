@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import compare_offers
 from urllib.parse import urlencode
+import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 
@@ -27,6 +29,21 @@ def get_offers():
     connection_types = request.args.get('connection_types', default=None, type=lambda x: x.split(","))
     providers = request.args.get('providers', default=None, type=lambda x: x.split(","))
 
+    params = {
+        "sort": sort,
+        "speed": speed,
+        # "cost": cost,
+        "duration": duration,
+        "tv_required": tv_required,
+        "limit": limit,
+        "installation_required": installation_required,
+        "connection_types": connection_types,
+        "providers": providers
+    }
+    params = {key: value for key, value in params.items() if value is not None}
+    share_url = make_share_url(request.host_url, params)
+    print(f"Share URL: {share_url}")
+
     df = compare_offers.get_all_offers()
 
     if speed:
@@ -41,7 +58,7 @@ def get_offers():
         df = compare_offers.filter_limit(df, limit)
     if installation_required:
         df = compare_offers.filter_installation(df, str2bool(installation_required))
-    if connection_types:
+    if connection_types is not None:
         df = compare_offers.filter_connection_types(df, connection_types)
     if providers:
         df = compare_offers.filter_provider(df, providers)
@@ -54,3 +71,12 @@ def get_offers():
         df = compare_offers.sort_by_speed(df)
 
     return jsonify(df.to_dict(orient="records"))
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+#TODO: change np.nan and pd.NA to None (everywhere)

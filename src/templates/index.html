@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internet Offers</title>
+</head>
+<body>
+    <h1>Compare offers</h1>
+    <!-- Filter form -->
+    <div id="filters">
+        <!-- Minimum speed input -->
+        <label for="speed">Min. speed (Mbps):</label>
+        <input type="number" id="speed" name="speed" min="0" value="">
+    
+        <!-- Unlimited checkbox -->
+        <label for="installation_included">
+            <input type="checkbox" id="installation_included" name="installation_included">
+            Installation included
+        </label>
+    
+        <!-- Search button -->
+        <button id="search-btn">Search</button>
+    </div>
+    
+    <!-- Shareable URL field -->
+    <div id="share">
+        <label for="share_url">Share this link:</label>
+        <input type="text" id="share_url" readonly style="width: 80%;">
+    </div>
+    
+    <!-- Results table -->
+    <table id="results" border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Speed (Mbps)</th>
+                <th>Cost in first years(€)</th>
+                <th>Intallation included</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be inserted here -->
+        </tbody>
+    </table>
+    <script>
+        // 1. Get references to our elements
+        const btn = document.getElementById('search-btn');
+        const speedInput = document.getElementById('speed');
+        const installCheckbox = document.getElementById('installation_included'); // your checkbox
+        
+        function getParam(name, defaultValue) {
+                const params = new URLSearchParams(window.location.search);
+                return params.has(name) ? params.get(name) : defaultValue;
+                }
+
+                // On page load: prefill inputs
+                document.addEventListener('DOMContentLoaded', () => {
+                speedInput.value = getParam('speed', speedInput.value);
+                installCheckbox.checked = getParam('installation', 'false') === 'true';
+
+                // If either filter param is present, run the search
+                if (window.location.search) {
+                        btn.click();
+                }
+                });
+        // 2. Listen for clicks
+        btn.addEventListener('click', () => {
+            // 3. Read the current values
+            const speed = speedInput.value;                    // e.g. "50"
+            const installOnly = installCheckbox.checked;       // true or false
+    
+            // 4. Build the API URL with query parameters
+            //    Replace "/api/offers" with your actual endpoint if different
+            const apiUrl = `/offers?speed=${speed}&installation=${installOnly}`;
+            console.log('Requesting:', apiUrl);
+            window.history.replaceState({}, '', `?speed=${speed}&installation=${installOnly}`);
+            // 5. Fetch the JSON
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not OK');
+                    }
+                    return response.json();    // parse JSON
+                })
+                .then(data => {
+                        console.log('Received data:', data);
+
+                        // 1. Get reference to the table body and share-input
+                        const tbody = document.getElementById('results').querySelector('tbody');
+                        const shareInput = document.getElementById('share_url');
+
+                        // 2. Clear out any old rows
+                        tbody.innerHTML = '';
+
+                        // 3. For each offer object, create a table row
+                        data.forEach(offer => {
+                                const tr = document.createElement('tr');
+
+                                // Helper to create and append a cell
+                                function addCell(text) {
+                                const td = document.createElement('td');
+                                td.textContent = text;
+                                tr.appendChild(td);
+                                }
+
+                                addCell(offer.name);
+                                addCell(offer.speed_mbps);
+                                addCell(offer.cost_first_years_eur);
+                                addCell(offer.installation_included ? 'Yes' : 'No');
+
+                                tbody.appendChild(tr);
+                        });
+
+                        // 4. Build the full API URL (including host) and set it in the share field
+                        //    window.location.origin is like "http://localhost:5000"
+                        shareInput.value = window.location.href;
+                        })
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                });
+    </script>
+</body>
+</html>

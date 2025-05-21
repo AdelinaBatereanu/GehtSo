@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 from utils import make_api_safe
 import pandas as pd
+pd.set_option('future.no_silent_downcasting', True)
 from fetch_byteme import get_offers as get_byteme_offers
 from fetch_pingperfect import get_offers as get_pingperfect_offers
 from fetch_servusspeed import get_offers as get_servusspeed_offers
@@ -10,6 +11,7 @@ from fetch_webwunder import get_offers as get_webwunder_offers
 import asyncio
 import time
 import logging
+import numpy as np
 
 
 address = {
@@ -53,12 +55,14 @@ def get_all_offers():
         ignore_index=True
     )
     all_offers["installation_included"] = all_offers["installation_included"].fillna(False).astype("boolean")
+
     all_offers["cost_first_years_eur"] = all_offers["promo_price_eur"].fillna(all_offers["cost_eur"])
     all_offers["after_two_years_eur"] = all_offers["after_two_years_eur"].fillna(all_offers["cost_eur"])
-    all_offers["is_unlimited"] = all_offers["is_unlimited"].fillna(True).astype("boolean")
-    return all_offers
 
-# all_offers.to_csv("df_check.csv", index=False)
+    all_offers["is_unlimited"] = all_offers["is_unlimited"].fillna(True).astype("boolean")
+    all_offers = all_offers.where(pd.notnull(all_offers), None)
+    all_offers = all_offers.replace({np.nan: None})
+    return all_offers
 
 def filter_speed(df, min_speed):
     return df[df["speed_mbps"] >= min_speed]
@@ -113,14 +117,26 @@ def sort_by_after_two_years_cost(df, ascending=True):
 def sort_by_speed(df, ascending=False):
     return df.sort_values(by="speed_mbps", ascending=ascending)
 
+def mark_missing(cell):
+    if cell is None:
+        return "<<None>>"
+    if cell is pd.NA:
+        return "<<pd.NA>>"
+    # use numpy to detect NaN
+    if isinstance(cell, float) and np.isnan(cell):
+        return "<<np.nan>>"
+    return cell
 
 if __name__ == "__main__":
     # pass
-    pd.set_option('display.max_columns', None)
     all_offers = get_all_offers()
-    filtered = filter_installation(all_offers, True)
-    print("=== Cheapest DSL Offers ===")
-    print(sort_by_first_years_cost(filtered).head(10))
+    debug_df = all_offers.applymap(mark_missing)
+    debug_df.to_csv("df_check.csv", index=False)
+    # pd.set_option('display.max_columns', None)
+    # all_offers = get_all_offers()
+    # filtered = filter_installation(all_offers, True)
+    # print("=== Cheapest DSL Offers ===")
+    # print(sort_by_first_years_cost(filtered).head(10))
 
 #TODO: check that all inputs are made safe for api
 #TODO: change None to N/A or np.nan
