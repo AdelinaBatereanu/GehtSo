@@ -4,7 +4,7 @@ pd.set_option('future.no_silent_downcasting', True)
 from fetch_byteme import get_offers as get_byteme_offers
 from fetch_pingperfect import get_offers as get_pingperfect_offers
 from fetch_servusspeed import get_offers as get_servusspeed_offers
-from fetch_verbydich import get_offers as get_verbyndich_offers
+from fetch_verbyndich import get_offers as get_verbyndich_offers
 from fetch_webwunder import get_offers as get_webwunder_offers
 import asyncio
 import time
@@ -14,15 +14,8 @@ import logging
 import numpy as np
 
 
-# address = {
-#     "street": "Hauptstrasse",
-#     "house_number": "5A",
-#     "plz": "10115",
-#     "city": "Berlin"
-# }
-
 MAX_RETRIES = 3
-RETRY_BACKOFF = 6  # seconds
+RETRY_BACKOFF = 5  # seconds
 
 def safe_get_offers(get_offers_func, address, provider_name):
     for attempt in range(1, MAX_RETRIES + 1):
