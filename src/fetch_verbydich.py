@@ -32,7 +32,9 @@ def fetch_all_offers(address):
     """
     Fetches all offers for the given address from Verbyndich API
     """
+    print("Fetching offers from Verbyndich API...")
     all_offers = []
+    #TODO: make this async
     page = 0
     data = fetch_offers_from_page(address, page)
     all_offers.append(data)
@@ -62,10 +64,10 @@ def parse_description(desc):
     limit = re.search(r"Ab (\d+)GB pro Monat wird die Geschwindigkeit gedrosselt", desc)
     if limit:
         data["limit_from_gb"] = int(limit.group(1))
-        data["unlimited"] = False
+        data["is_unlimited"] = False
     else: 
         data["limit_from_gb"] = np.nan
-        data["unlimited"] = True
+        data["is_unlimited"] = True
     # seaches for the max voucher value and promo duration
     data["voucher_fixed_eur"] = float(m.group(1)) if (m := re.search(r"Rabatt beträgt (\d+)€", desc)) else np.nan
     data["promo_duration_months"] = int(m.group(1)) if  (m := re.search(r"monatliche Rechnung bis zum (\d+)\. Monat", desc)) else np.nan
@@ -111,21 +113,33 @@ def transform_offers(all_offers, provider="VerbynDich"):
     df = pd.DataFrame(offers_list)
     return df
 
-def fetch_verbyndich(address):
+def get_offers(address_input):
     """
     Main function to fetch and transform offers from Verbyndich API
     Args:
-        address (str): address in the format "street;house_number;city;plz"
+        address_input = {
+                "street": "Hauptstraße",
+                "house_number": "5A",
+                "plz": "10115",
+                "city": "Berlin"
+            }
     Returns:
         pandas.DataFrame: DataFrame with the offers
     """
+    address = ";".join([address_input[key] for key in ["street", "house_number", "city", "plz"]])
     offers = fetch_all_offers(address)
     # print(offers[:20])
     df = transform_offers(offers)
+    print(f"Found {len(df)} offers, Verbyndich")
     return df
         
 if __name__ == "__main__":
-    address = make_api_safe("Meisenstrasse;7;Höhenkirchen-Siegertsbrunn;85635")
-    df = fetch_verbyndich(address)
+    address = {
+            "street": "Hauptstrasse",
+            "house_number": "5A",
+            "plz": "10115",
+            "city": "Berlin"
+        }
+    df = get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(10))

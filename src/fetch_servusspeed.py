@@ -19,11 +19,11 @@ def fetch_available_products(address):
     Takes around 10-15 seconds to complete.
     Args:
         address (dict): {
-                        "strasse": "Hauptstraße",
-                        "hausnummer": "5A",
-                        "postleitzahl": "10115",
-                        "stadt": "Berlin",
-                        "land": "DE"
+                        "strasse": str,
+                        "hausnummer": str,
+                        "postleitzahl": str,
+                        "stadt": str,
+                        "land": str
                     }
     Returns:
         list: A list of available product IDs.
@@ -159,38 +159,46 @@ def transform_offer(offer):
     data["max_age"] = int(info.get("maxAge"))
     return data
 
-def fetch_servusspeed(address):
+def get_offers(address_input):
     """
     Fetch and transform offers for a given address.
     Args:
-        address (dict): {
-                        "strasse": "Hauptstraße",
-                        "hausnummer": "5A",
-                        "postleitzahl": "10115",
-                        "stadt": "Berlin",
-                        "land": "DE"
-                    }
+        address_input = {
+            "street": str,
+            "house_number": str,
+            "plz": str,
+            "city": str,
+        }
     Returns:
         pandas.DataFrame
     """
+    address = {
+        "strasse": address_input["street"],
+        "hausnummer": address_input["house_number"],
+        "postleitzahl": address_input["plz"],
+        "stadt": address_input["city"],
+        "land": "DE"
+    }
+
     product_ids = fetch_available_products(address)
     # print(f"Found {len(product_ids)} product IDs")
+    print(f"Fetching offers for Servus Speed")
     offers = asyncio.run(fetch_all_offers(product_ids, address))
     normalized_offers = []
     for offer in offers:
         normalized = transform_offer(offer)
         normalized_offers.append(normalized)
     df = pd.DataFrame(normalized_offers)
+    print(f"Fetched {len(df)} offers for Servus Speed")
     return df
 
 if __name__ == "__main__":
     test_address = {
-        "strasse": "Hauptstraße",
-        "hausnummer": "5A",
-        "postleitzahl": "10115",
-        "stadt": "Berlin",
-        "land": "DE"
+        "street": "Hauptstraße",
+        "house_number": "5A",
+        "plz": "10115",
+        "city": "Berlin"
     }
-    df = fetch_servusspeed(test_address)
+    df = get_offers(test_address)
     pd.set_option('display.max_columns', None)
-    print(df.head())
+    print(df.head(20))

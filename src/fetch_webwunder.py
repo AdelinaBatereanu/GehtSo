@@ -16,11 +16,16 @@ def fetch_offers(installation, connection_type, address):
     Args:
         installation (bool)
         connection_type (str): "fiber", "dsl", "cable"
-        address (dict): with following keys: street, houseNumber, city, plz, countryCode.
+        address = {
+            "street": str,
+            "houseNumber": str,
+            "city": str,
+            "plz": str,
+            "countryCode": str
+        }
     Returns:
         response: Response object from the requests library
     """
-    
     envelope = f"""<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:gs="http://webwunder.gendev7.check24.fun/offerservice">
                     <soapenv:Header/>
@@ -42,8 +47,8 @@ def fetch_offers(installation, connection_type, address):
                     </soapenv:Envelope>"""
 
     headers = {"X-Api-Key": API_KEY}
-
     response = requests.post(BASE_URL, data=envelope, headers=headers)
+    # print(response.text[:1000])  # Print the first 1000 characters of the response for debugging
     response.raise_for_status()
     return response
 
@@ -77,14 +82,29 @@ def parse_offers(response):
         speed_mbps   = int(info.find("ns2:speed", ns).text)
         cost_cent    = int(info.find("ns2:monthlyCostInCent", ns).text)
         post25_cent  = int(info.find("ns2:monthlyCostInCentFrom25thMonth", ns).text)
-        # voucher is a fixed amount: discount price is calculated as
-        # monthly cost - discount / 24 months
-        voucher_info   = info.find("ns2:voucher", ns)
-        voucher_fixed_cent = int(voucher_info.find("ns2:discountInCent", ns).text)
-        voucher_percent = np.nan
-        promo_price_cent = cost_cent - voucher_fixed_cent / 24
-        min_cent = int(voucher_info.find("ns2:minOrderValueInCent", ns).text)
 
+        voucher_info   = info.find("ns2:voucher", ns)
+        voucher_type = voucher_info.attrib.get("{http://www.w3.org/2001/XMLSchema-instance}type")
+        # if voucher is a percentage
+        if voucher_type == "ns2:percentageVoucher":
+            voucher_percent = int(voucher_info.find("ns2:percentage", ns).text)
+            voucher_fixed_cent = int(voucher_info.find("ns2:maxDiscountInCent", ns).text)
+            # if voucher percent applied over voucher duration < max voucher value
+            # voucher in percent is used to calculate the promo price
+            if voucher_percent / 100 * cost_cent * 24 < voucher_fixed_cent:
+                promo_price_cent = cost_cent - cost_cent * voucher_percent / 100
+            # if voucher percent applied over voucher duration > max voucher value
+            # max voucher value is used to calculate the promo price
+            else:
+                promo_price_cent = cost_cent - voucher_fixed_cent / 24
+            min_cent = np.nan
+        # if voucher is a fixed amount: discount price is calculated as
+        # monthly cost - discount / 24 months
+        else:
+            voucher_fixed_cent = int(voucher_info.find("ns2:discountInCent", ns).text)
+            voucher_percent = np.nan
+            promo_price_cent = cost_cent - voucher_fixed_cent / 24
+            min_cent = int(voucher_info.find("ns2:minOrderValueInCent", ns).text)
         duration = int(info.find("ns2:contractDurationInMonths", ns).text)
         connection_type = info.find("ns2:connectionType", ns).text
 
@@ -107,12 +127,22 @@ def parse_offers(response):
     df = pd.DataFrame(parsed)
     return df
 
-def fetch_webwunder(address):
+def get_offers(address_input):
     """
     Main function to fetch and transform offers from WebWunder API
     """
+    address = {
+        "street": address_input["street"],
+        "houseNumber": address_input["house_number"],
+        "city": address_input["city"],
+        "plz": address_input["plz"],
+        "countryCode": "DE"
+    }
+
     all_offers = []
     # Fetch offers for all connection types and installation options
+    print("Fetching offers for WebWunder")
+    #TODO: make this async
     connection_types = ["fiber", "dsl", "cable"]
     for connection_type in connection_types:
         for installation in [True, False]:
@@ -122,16 +152,16 @@ def fetch_webwunder(address):
             all_offers.append(offers)
 
     df = pd.concat(all_offers, ignore_index=True)
+    print(f"Found {len(df)} offers, Webwunder")
     return df
 
 if __name__ == "__main__":
     address = {
-        "street": "Bendelstrasse",
-        "houseNumber": "37",
-        "city": "Aachen",
-        "plz": "52062",
-        "countryCode": "DE"
+        "street": "Hauptstrasse",
+        "house_number": "5A",
+        "plz": "10115",
+        "city": "Berlin"
     }
-    df = fetch_webwunder(address)
+    df = get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(40))

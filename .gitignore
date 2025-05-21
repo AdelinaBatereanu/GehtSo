@@ -20,3 +20,5 @@ venv/
 
 # API keys
 .env
+
+df_check.csv

@@ -57,7 +57,7 @@ def fetch_offers(address, wants_fiber):
         "X-Signature": signature,
         "Content-Type": "application/json"
     }
-
+    print("Fetching offers from Ping Perfect API...")
     response = requests.post(BASE_URL, headers=headers, data=json_body, timeout=10)
     response.raise_for_status()
     results = response.json()
@@ -96,18 +96,18 @@ def transform_offer(offer):
         "installation_included": pricing["installationService"] != "no",
         "tv":                   info.get("tv"),
         "max_age":              info.get("maxAge") if info.get("maxAge") else np.nan,
-        "limit_from":           info.get("limitFrom") if info.get("limitFrom") else np.nan,
+        "limit_from_gb":        info.get("limitFrom") if info.get("limitFrom") else np.nan,
         "is_unlimited":         False if info.get("limitFrom") else True
     }
 
-def fetch_pingperfect(address):
+def get_offers(address):
     """
     Fetch and transform offers for a given address.
     Args:
-        address (dict): {
+        adress = {
             "street": str,
-            "plz": str,
             "house_number": str,
+            "plz": str,
             "city": str
         }
     Returns:
@@ -125,17 +125,16 @@ def fetch_pingperfect(address):
         normalized_offers.append(normalized)
 
     df = pd.DataFrame(normalized_offers)
+    print(f"Fetched {len(df)} offers from Ping Perfect API.")
     return df
 
 if __name__ == "__main__":
-
     address = {
-        "street": "Meisenstrasse",
-        "plz": "85635",
-        "house_number": "7",
-        "city": "Höhenkirchen-Siegertsbrunn",
-    }
-
-    df = fetch_pingperfect(address)
+            "street": "Hauptstraße",
+            "house_number": "5A",
+            "plz": "10115",
+            "city": "Berlin"
+            }
+    df = get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(15))
