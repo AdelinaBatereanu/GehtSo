@@ -50,6 +50,7 @@ const searchBtn = document.getElementById('search-btn');
 
 // --- Main search trigger ---
 function triggerSearch() {
+    console.log('Search triggered');
     // Get address fields
     const streetInput = document.getElementById('street');
     const houseNumberInput = document.getElementById('house_number');
@@ -136,6 +137,10 @@ function updateResults(data) {
         const cardElement = createCard(offer);
         resultsDiv.appendChild(cardElement);
     });
+
+    const providers = new Set(data.map(o => o.provider));
+    const summary = `Found ${data.length} offer${data.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
+    document.getElementById('offers-summary').textContent = summary;
 
     // Update share field
     document.getElementById('share_url').value = window.location.href;

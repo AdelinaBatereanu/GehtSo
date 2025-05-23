@@ -14,7 +14,7 @@
 
             // Card container
             const card = document.createElement('div');
-            card.className = 'card h-100 p-3 align-items-end';
+            card.className = 'card h-100 p-3 justify-content-between';
             card.style.fontSize = '0.93rem';
             card.style.lineHeight = '1.2';
 
@@ -127,20 +127,19 @@
             left.appendChild(img);
             left.appendChild(nameContainer);
 
-            // --- Center: Speed ---
-            const center = document.createElement('div');
-            center.className = 'd-flex flex-column align-items-center justify-content-center flex-grow-1';
-            center.style.width = '180px';
+            const centerRight = document.createElement('div');
+            centerRight.className = 'd-flex justify-content-end align-items-right flex-grow-1';
+            centerRight.style.width = '260px';
 
             const speed = document.createElement('div');
             speed.className = 'fw-medium fs-4';
             speed.textContent = `${offer.speed_mbps} Mbps`;
-            center.appendChild(speed);
+            centerRight.appendChild(speed);
 
             // --- Right: Price ---
-            const right = document.createElement('div');
-            right.className = 'd-flex flex-column align-items-end justify-content-center';
-            right.style.width = '180px';
+            const priceContainer = document.createElement('div');
+            priceContainer.className = 'd-flex flex-column align-items-end';
+            priceContainer.style.width = '200px';
 
             // Original price and discount
             if (offer.cost_eur && offer.cost_first_years_eur && offer.cost_eur !== offer.cost_first_years_eur) {
@@ -160,7 +159,7 @@
                 discountLabel.textContent = `-${discountPercent}%`;
                 priceOriginalContainer.appendChild(discountLabel);
 
-                right.appendChild(priceOriginalContainer);
+                priceContainer.appendChild(priceOriginalContainer);
             }
 
             // Promotional price
@@ -168,32 +167,31 @@
             price.className = 'fw-bold text fs-4';
             const priceValue = offer.cost_first_years_eur;
             price.textContent = `€${priceValue ? priceValue.toFixed(2) : "N/A"}`;
-            right.appendChild(price);
+            priceContainer.appendChild(price);
 
             // Price label
             const priceLabel = document.createElement('div');
             priceLabel.className = 'small text-muted';
             priceLabel.style.fontSize = '0.93em';
             priceLabel.textContent = 'Mean cost per month';
-            right.appendChild(priceLabel);
-
+            priceContainer.appendChild(priceLabel);
             // After two years price
             if (offer.after_two_years_eur) {
                 const spacer = document.createElement('div');
                 spacer.style.height = '0.3em';
-                right.appendChild(spacer);
+                priceContainer.appendChild(spacer);
 
                 const afterTwoYears = document.createElement('div');
                 afterTwoYears.className = 'small text-end w-100';
                 afterTwoYears.style.fontSize = '0.93em';
-                afterTwoYears.textContent = `starting with the 25th month: €${offer.after_two_years_eur.toFixed(2)}`;
-                right.appendChild(afterTwoYears);
+                afterTwoYears.textContent = `after 24 month: €${offer.after_two_years_eur.toFixed(2)}`;
+                priceContainer.appendChild(afterTwoYears);
             }
+            centerRight.appendChild(priceContainer);
 
             // Assemble card
             row.appendChild(left);
-            row.appendChild(center);
-            row.appendChild(right);
+            row.appendChild(centerRight);
             card.appendChild(row);
             col.appendChild(card);
             return col;

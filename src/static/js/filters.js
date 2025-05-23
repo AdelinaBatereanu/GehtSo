@@ -119,4 +119,15 @@ export function initFilters({ getParam, applyFiltersAndUpdateResults }) {
     selectedSort = getParam('sort', sortBySelect.value);
     sortBySelect.value = selectedSort;
 
+    document.getElementById('reset-filters').addEventListener('click', () => {
+        // Reset all filter controls to default values
+        // Example for checkboxes:
+        document.querySelectorAll('#filters input[type="checkbox"]').forEach(cb => cb.checked = false);
+        // Example for buttons:
+        document.querySelectorAll('#filters button').forEach(btn => btn.classList.remove('active'));
+        // Reset selects, inputs, etc. as needed
+        // Then trigger your filter update logic
+        applyFiltersAndUpdateResults();
+    });
+
 }

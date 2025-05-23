@@ -1,0 +1,14 @@
+/* Make all text in the filters card smaller */
+#filters {
+    font-size: 0.93em;
+}
+#filters .btn {
+    font-size: 0.95em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+
+#filters.card {
+    padding-left: 0.2rem;
+    padding-right: 0.5rem;
+}
