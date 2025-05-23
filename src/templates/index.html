@@ -7,514 +7,120 @@
     rel="stylesheet" 
     integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" 
     crossorigin="anonymous">
-    <style>
-        /* Highlight active buttons */
-        #speed-buttons button.active,
-        #limit-buttons button.active,
-        #duration-buttons button.active,
-        #tv-buttons button.active {
-            background-color: #007bff;
-            color: white;
-        }
-    </style>
 </head>
 <body>
-    <div class="container my-4">
-    <h1>Compare offers</h1>
-    <!-- Address form -->
-    <div id="address-fields">
-        <label>Street: <input class="form-control" type="text" id="street" name="street"></label>
-        <label>House number: <input type="text" id="house_number" name="house_number"></label>
-        <label>PLZ: <input type="text" id="plz" name="plz"></label>
-        <label>City: <input type="text" id="city" name="city"></label>
-        <button id="search-btn" type="button" class="btn btn-primary">Search</button>
-    </div>
-    <div id="age-filter">
-        <label>
-            Age:
-            <input type="number" id="age_input" min="0" placeholder="Enter your age" style="width: 80px;">
-        </label>
-        <label>
-            <input type="checkbox" id="show_all_ages" checked>
-            Show me all offers
-        </label>
-    </div>
-    <!-- Filter form -->
-    <div id="filters">
-        <!-- Minimum speed filter -->
-        <label for="speed">Min. speed (Mbps):</label>
-        <div id="speed-buttons">
-            <button type="button" data-speed="">All</button>
-            <button type="button" data-speed="20">from 20</button>
-            <button type="button" data-speed="50">from 50</button>
-            <button type="button" data-speed="100">from 100</button>
-            <button type="button" data-speed="150">from 150</button>
-            <button type="button" data-speed="250">from 250</button>
-        </div>    
-
-        <label>TV:</label>
-        <div id="tv-buttons">
-            <button type="button" data-tv="">Show all</button>
-            <button type="button" data-tv="false">Only internet offers</button>
-            <button type="button" data-tv="true">Internet and TV</button>
+    <div class="container my-3">
+        <h1>Compare offers</h1>
+        <!-- Top bar: address, age, share -->
+        <div class="row mb-2">
+            <div class="col-12 col-lg-8 d-flex flex-wrap align-items-end gap-2">
+                <!-- Address form -->
+                <div id="address-fields" class="d-flex flex-wrap gap-2">
+                    <label>Street: <input class="form-control" type="text" id="street" name="street"></label>
+                    <label>House number: <input type="text" id="house_number" name="house_number"></label>
+                    <label>PLZ: <input type="text" id="plz" name="plz"></label>
+                    <label>City: <input type="text" id="city" name="city"></label>
+                    <button id="search-btn" type="button" class="btn btn-primary">Search</button>
+                </div>
+                <!-- Age filter -->
+                <div id="age-filter" class="ms-3">
+                    <label>
+                        Age:
+                        <input type="number" id="age_input" min="0" placeholder="Enter your age" style="width: 80px;">
+                    </label>
+                    <label>
+                        <input type="checkbox" id="show_all_ages" checked>
+                        Show me all offers
+                    </label>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4 d-flex align-items-end justify-content-lg-end mt-2 mt-lg-0">
+                <!-- Shareable URL field -->
+                <div id="share" class="w-100">
+                    <label for="share_url">Share this link:</label>
+                    <input type="text" id="share_url" readonly style="width: 80%;">
+                </div>
+            </div>
         </div>
-
-        <!-- Data limit filter -->
-        <label>Limit (GB):</label>
-        <div id="limit-buttons">
-            <button type="button" data-limit="">All</button>
-            <button type="button" data-limit="100">100</button>
-            <button type="button" data-limit="200">200</button>
-            <button type="button" data-limit="300">300</button>
-            <button type="button" data-limit="none">None</button>
+        <!-- Main content: sidebar filters and results -->
+        <div class="row">
+            <!-- Sidebar filters -->
+            <div class="sidebar-col col-md-2 mb-2">
+                <div id="filters" class="card p-2">
+                    <!-- Minimum speed filter -->
+                    <label class="mb-1" for="speed">Min. speed (Mbps):</label>
+                    <div id="speed-buttons" class="mb-3">
+                        <button type="button" data-speed="" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">All</button>
+                        <button type="button" data-speed="20" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">from 20</button>
+                        <button type="button" data-speed="50" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">from 50</button>
+                        <button type="button" data-speed="100" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">from 100</button>
+                        <button type="button" data-speed="150" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">from 150</button>
+                        <button type="button" data-speed="250" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">from 250</button>
+                    </div>
+                    <!-- TV filter -->
+                    <label class="mb-1">TV:</label>
+                    <div id="tv-buttons" class="mb-3">
+                        <button type="button" data-tv="" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">Show all</button>
+                        <button type="button" data-tv="false" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">Only internet</button>
+                        <button type="button" data-tv="true" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">Internet and TV</button>
+                    </div>
+                    <!-- Data limit filter -->
+                    <label class="mb-1">Limit (GB):</label>
+                    <div id="limit-buttons" class="mb-3">
+                        <button type="button" data-limit="" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">All</button>
+                        <button type="button" data-limit="100" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">100</button>
+                        <button type="button" data-limit="200" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">200</button>
+                        <button type="button" data-limit="300" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">300</button>
+                        <button type="button" data-limit="none" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">None</button>
+                    </div>
+                    <!-- Connection type filter -->
+                    <label class="mb-1">Connection type:</label>
+                    <div id="connection-type-checkboxes" class="mb-3 d-flex flex-column">
+                        <label class="mb-1"><input type="checkbox" value="dsl" class="connection-type"> DSL</label>
+                        <label class="mb-1"><input type="checkbox" value="fiber" class="connection-type"> Fiber</label>
+                        <label class="mb-1"><input type="checkbox" value="cable" class="connection-type"> Cable</label>
+                    </div>
+                    <!-- Contract duration filter -->
+                    <label class="mb-1">Max. contract duration:</label>
+                    <div id="duration-buttons" class="mb-3">
+                        <button type="button" data-duration="" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">Any</button>
+                        <button type="button" data-duration="11" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;"> 12 months</button>
+                        <button type="button" data-duration="12" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">12 months</button>
+                        <button type="button" data-duration="24" class="btn btn-outline-secondary w-100 py-1 mb-1" style="font-size:0.97em;">24 months</button>
+                    </div>
+                    <!-- Provider filter -->
+                    <label class="mb-1">Provider:</label>
+                    <div id="provider-checkboxes" class="mb-3 d-flex flex-column">
+                        <label class="mb-1"><input type="checkbox" value="ByteMe" class="provider"> ByteMe</label>
+                        <label class="mb-1"><input type="checkbox" value="WebWunder" class="provider"> WebWunder</label>
+                        <label class="mb-1"><input type="checkbox" value="Ping Perfect" class="provider"> PingPerfect</label>
+                        <label class="mb-1"><input type="checkbox" value="Servus Speed" class="provider"> ServusSpeed</label>
+                        <label class="mb-1"><input type="checkbox" value="VerbynDich" class="provider"> Verbyndich</label>
+                    </div>
+                    <!-- Installation included filter -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="installation_included" name="installation_included">
+                        <label class="form-check-label" for="installation_included">
+                            Installation included
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <!-- Offers/results -->
+            <div class="results-col col-md-10">
+                <!-- Sort menu above cards, right-aligned -->
+                <div id="sort-filter-top">
+                    <label for="sort_by" class="me-2 mb-0">Sort by:</label>
+                    <select id="sort_by" style="width:auto; display:inline-block;">
+                        <option value="cost_first_years_eur" selected>Mean cost per month</option>
+                        <option value="after_two_years_eur">Cost after two years</option>
+                        <option value="speed_mbps">Speed</option>
+                    </select>
+                </div>
+                <div id="results" class="row g-1"></div>
+            </div>
         </div>
-
-        <!-- Connection type filter -->
-        <label>Connection type:</label>
-        <div id="connection-type-checkboxes">
-            <label><input type="checkbox" value="dsl" class="connection-type"> DSL</label>
-            <label><input type="checkbox" value="fiber" class="connection-type"> Fiber</label>
-            <label><input type="checkbox" value="cable" class="connection-type"> Cable</label>
-        </div>
-
-        <label>Max. contract duration:</label>
-        <div id="duration-buttons">
-            <button type="button" data-duration="">Any</button>
-            <button type="button" data-duration="11">Less than a year</button>
-            <button type="button" data-duration="12">12 months</button>
-            <button type="button" data-duration="24">24 months</button>
-        </div>
-
-        <label>Provider:</label>
-        <div id="provider-checkboxes">
-            <label><input type="checkbox" value="ByteMe" class="provider"> ByteMe</label>
-            <label><input type="checkbox" value="WebWunder" class="provider"> WebWunder</label>
-            <label><input type="checkbox" value="Ping Perfect" class="provider"> PingPerfect</label>
-            <label><input type="checkbox" value="Servus Speed" class="provider"> ServusSpeed</label>
-            <label><input type="checkbox" value="VerbynDich" class="provider"> Verbyndich</label>
-        </div>
-
-        <!-- Installation included filter -->
-        <label for="installation_included">
-            <input type="checkbox" id="installation_included" name="installation_included">
-            Installation included
-        </label>
     </div>
-    
-    <!-- Shareable URL field -->
-    <div id="share">
-        <label for="share_url">Share this link:</label>
-        <input type="text" id="share_url" readonly style="width: 80%;">
-    </div>
-    
-    <div id="sort-filter">
-        <label for="sort_by">Sort by:</label>
-        <select id="sort_by">
-            <option value="cost_first_years_eur" selected>Mean cost per month</option>
-            <option value="after_two_years_eur">Cost after two years</option>
-            <option value="speed_mbps">Speed</option>
-        </select>
-    </div>
-
-    <div id="results" class="row g-4"></div>
-
-    <div>
-
-    <script>
-        const sampleOffer = {
-            provider: "ByteMe",
-            name: "Super Fast Internet 1000",
-            speed_mbps: 1000,
-            cost_first_years_eur: 29.99,
-            cost_eur: 34.99,
-            duration_months: 24,
-            tv: false,
-            limit_from_gb: null,
-            connection_type: "fiber",
-            installation_included: true,
-            max_age: null,
-            after_two_years_eur: 37.99
-        };
-        let allOffers = [];
-        // References to filter elements
-        const searchBtn = document.getElementById('search-btn');
-        const installCheckbox = document.getElementById('installation_included');
-        const speedButtons = document.querySelectorAll('#speed-buttons button');
-        const limitButtons = document.querySelectorAll('#limit-buttons button');
-        const connectionTypeCheckboxes = document.querySelectorAll('.connection-type');
-        const durationButtons = document.querySelectorAll('#duration-buttons button');
-        const tvButtons = document.querySelectorAll('#tv-buttons button');
-        const providerCheckboxes = document.querySelectorAll('.provider');
-        const ageInput = document.getElementById('age_input');
-        const showAllAgesCheckbox = document.getElementById('show_all_ages');
-        const sortBySelect = document.getElementById('sort_by');
-
-        // State variables for selected filters
-        let selectedSpeed = ""; // Default: all speeds
-        let selectedLimit = ""; // Default: all limits
-        let selectedMaxDuration = ""; // Default: any
-        let selectedTv = ""; // Default: show all
-        let selectedSort = sortBySelect.value;
-
-        // Helper function to get selected connection types
-        function getSelectedConnectionTypes() {
-            return Array.from(connectionTypeCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
-        }
-
-        function getSelectedProviders() {
-            return Array.from(providerCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
-        }
-
-        function triggerSearch() {
-
-            const streetInput = document.getElementById('street');
-            const houseNumberInput = document.getElementById('house_number');
-            const plzInput = document.getElementById('plz');
-            const cityInput = document.getElementById('city');
-
-            if (
-                !streetInput.value.trim() ||
-                !houseNumberInput.value.trim() ||
-                !plzInput.value.trim() ||
-                !cityInput.value.trim()
-            ) {
-                alert('Please fill in all address fields.');
-                return;
-            }
-            // Build query parameters
-            const params = new URLSearchParams();
-            params.set('street', streetInput.value.trim());
-            params.set('house_number', houseNumberInput.value.trim());
-            params.set('plz', plzInput.value.trim());
-            params.set('city', cityInput.value.trim());
-
-            // Fetch all offers from the server
-            const apiUrl = `/offers?${params.toString()}`;
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not OK');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    allOffers = data; // Store all offers
-                    applyFiltersAndUpdateResults();
-                })
-                .catch(err => console.error('Fetch error:', err));
-
-        }
-        // Function to trigger search and update results
-        function applyFiltersAndUpdateResults() {
-            let filtered = allOffers;
-
-            if (selectedSpeed) {
-                filtered = filtered.filter(o => o.speed_mbps >= Number(selectedSpeed));
-            }
-            if (selectedLimit && selectedLimit !== "none") {
-                filtered = filtered.filter(o => !o.limit_from_gb || o.limit_from_gb >= Number(selectedLimit));
-            }
-            if (selectedLimit === "none") {
-                filtered = filtered.filter(o => !o.limit_from_gb);
-            }
-            if (selectedMaxDuration) {
-                filtered = filtered.filter(o => o.duration_months <= Number(selectedMaxDuration));
-            }
-            if (selectedTv) {
-                filtered = filtered.filter(o => selectedTv === "true" ? o.tv : !o.tv);
-            }
-            const selectedTypes = getSelectedConnectionTypes();
-            if (selectedTypes.length > 0) {
-                filtered = filtered.filter(o => selectedTypes.includes(o.connection_type));
-            }
-            const selectedProviders = getSelectedProviders();
-            if (selectedProviders.length > 0) {
-                filtered = filtered.filter(o => selectedProviders.includes(o.provider));
-            }
-            if (installCheckbox.checked) {
-                filtered = filtered.filter(o => o.installation_included);
-            }
-            if (!showAllAgesCheckbox.checked && ageInput.value.trim() !== "") {
-                const userAge = Number(ageInput.value.trim());
-                if (!isNaN(userAge)) {
-                    filtered = filtered.filter(o => !o.max_age || userAge <= o.max_age);
-                }
-            }
-
-            // Sorting
-            if (selectedSort === "cost_first_years_eur") {
-                filtered = filtered.slice().sort((a, b) => a.cost_first_years_eur - b.cost_first_years_eur);
-            } else if (selectedSort === "after_two_years_eur") {
-                filtered = filtered.slice().sort((a, b) => a.after_two_years_eur - b.after_two_years_eur);
-            } else if (selectedSort === "speed_mbps") {
-                filtered = filtered.slice().sort((a, b) => b.speed_mbps - a.speed_mbps); // Descending
-            }
-
-            updateResults(filtered);
-            updateShareUrlAndHistory();
-        }
-
-        function updateShareUrlAndHistory() {
-            const street = document.getElementById('street').value.trim();
-            const houseNumber = document.getElementById('house_number').value.trim();
-            const plz = document.getElementById('plz').value.trim();
-            const city = document.getElementById('city').value.trim();
-
-            const params = new URLSearchParams();
-            if (street) params.set('street', street);
-            if (houseNumber) params.set('house_number', houseNumber);
-            if (plz) params.set('plz', plz);
-            if (city) params.set('city', city);
-
-            if (selectedSpeed) params.set('speed', selectedSpeed);
-            if (selectedLimit) params.set('limit', selectedLimit);
-            if (selectedMaxDuration) params.set('duration', selectedMaxDuration);
-            if (selectedTv) params.set('tv', selectedTv);
-
-            const selectedTypes = getSelectedConnectionTypes();
-            if (selectedTypes.length > 0) params.set('connection_types', selectedTypes.join(','));
-
-            const selectedProviders = getSelectedProviders();
-            if (selectedProviders.length > 0) params.set('providers', selectedProviders.join(','));
-
-            if (installCheckbox.checked) params.set('installation', 'true');
-
-            if (!showAllAgesCheckbox.checked && ageInput.value.trim() !== "") {
-                params.set('age', ageInput.value.trim());
-            }
-
-            if (selectedSort) params.set('sort', selectedSort);
-
-            const newUrl = `${window.location.pathname}?${params.toString()}`;
-            window.history.replaceState({}, '', newUrl);
-
-            // Update the share input field
-            document.getElementById('share_url').value = window.location.href;
-        }
-
-        // Function to update results table
-        function updateResults(data) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-
-            data.forEach(offer => {
-                const col = document.createElement('div');
-                col.className = 'col-12 mb-3';
-
-                const card = document.createElement('div');
-                card.className = 'card h-100 p-3';
-
-                // Flex row for card content
-                const row = document.createElement('div');
-                row.className = 'd-flex align-items-center justify-content-around';
-
-                // Left: Logo (centered vertically)
-                const left = document.createElement('div');
-                left.className = 'd-flex align-items-start me-4'; // align-items-start for top alignment
-
-                const img = document.createElement('img');
-                img.className = 'rounded';
-                img.alt = offer.provider + ' logo';
-                img.src = `/static/images/${offer.provider}.jpeg`;
-                img.style.width = '120px';
-                img.style.height = '120px';
-
-                // Name on the right side of the picture, aligned to top
-                const nameContainer = document.createElement('div');
-                nameContainer.className = 'ms-3 d-flex flex-column justify-content-start'; // ensure top alignment
-                const title = document.createElement('div');
-                title.className = 'product-title fs-5 fw-semibold';
-                title.textContent = offer.name;
-
-                nameContainer.appendChild(title);
-                left.appendChild(img);
-                left.appendChild(nameContainer);
-
-                // Center: Speed (stacked)
-                const center = document.createElement('div');
-                center.className = 'd-flex flex-column align-items-center flex-grow-1';
-                const speed = document.createElement('div');
-                speed.className = 'fs-4 fw-medium';
-                speed.textContent = `${offer.speed_mbps} Mbps`;
-                center.appendChild(speed);
-
-                // Right: Price (stacked)
-                const right = document.createElement('div');
-                right.className = 'd-flex flex-column align-items-center text-end';
-                // Original price (crossed out) and discount percent on the same line
-                if (offer.cost_eur && offer.cost_first_years_eur && offer.cost_eur !== offer.cost_first_years_eur) {
-                    const priceOriginalContainer = document.createElement('div');
-                    priceOriginalContainer.className = 'd-flex align-items-right';
-
-                    const priceOriginal = document.createElement('div');
-                    priceOriginal.className = 'text-muted text-decoration-line-through me-2';
-                    priceOriginal.textContent = `€${offer.cost_eur.toFixed(2)}`;
-                    priceOriginalContainer.appendChild(priceOriginal);
-
-                    const discountPercent = ((offer.cost_eur - offer.cost_first_years_eur) / offer.cost_eur * 100).toFixed(0);
-                    const discountLabel = document.createElement('span');
-                    discountLabel.className = 'text-danger';
-                    discountLabel.textContent = `(-${discountPercent}%)`;
-                    priceOriginalContainer.appendChild(discountLabel);
-
-                    right.appendChild(priceOriginalContainer);
-                }
-
-                // Promotional price
-                const price = document.createElement('div');
-                price.className = 'fs-3 fw-bold text';
-                const priceValue = offer.cost_first_years_eur;
-                price.textContent = `€${priceValue ? priceValue.toFixed(2) : "N/A"}`;
-                right.appendChild(price);
-
-                // Price label
-                const priceLabel = document.createElement('div');
-                priceLabel.className = 'small text-muted';
-                priceLabel.textContent = 'Mean cost per month';
-                right.appendChild(priceLabel);
-
-                // Assemble card
-                row.appendChild(left);
-                row.appendChild(center);
-                row.appendChild(right);
-                card.appendChild(row);
-                col.appendChild(card);
-                resultsDiv.appendChild(col);
-            });
-
-            document.getElementById('share_url').value = window.location.href;
-        }
-
-        // Initialize filters and event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.location.search) {
-            updateResults([sampleOffer]);
-        }
-            // Prefill address fields from URL if present
-            const street = getParam('street', '');
-            const houseNumber = getParam('house_number', '');
-            const plz = getParam('plz', '');
-            const city = getParam('city', '');
-
-            document.getElementById('street').value = street;
-            document.getElementById('house_number').value = houseNumber;
-            document.getElementById('plz').value = plz;
-            document.getElementById('city').value = city;
-
-            // If all address fields are present, trigger the search
-            if (street && houseNumber && plz && city) {
-                triggerSearch();
-            }
-
-            // If user types in age, uncheck the "show all offers" box
-            ageInput.addEventListener('input', () => {
-                if (ageInput.value.trim() !== "") {
-                    showAllAgesCheckbox.checked = false;
-                }
-                applyFiltersAndUpdateResults();
-            });
-
-            // If user checks "show all offers", clear the age input
-            showAllAgesCheckbox.addEventListener('change', () => {
-                if (showAllAgesCheckbox.checked) {
-                    ageInput.value = "";
-                }
-                applyFiltersAndUpdateResults();
-            });
-
-            // Initialize connection type checkboxes
-            const typesFromUrl = getParam('connection_types', '').split(',').filter(Boolean);
-            connectionTypeCheckboxes.forEach(cb => {
-                cb.checked = typesFromUrl.includes(cb.value);
-                cb.addEventListener('change', applyFiltersAndUpdateResults);
-            });
-
-            // Initialize speed buttons
-            selectedSpeed = getParam('speed', "");
-            speedButtons.forEach(b => {
-                if (b.dataset.speed === selectedSpeed) b.classList.add('active');
-                else b.classList.remove('active');
-                b.addEventListener('click', () => {
-                    selectedSpeed = b.dataset.speed;
-                    speedButtons.forEach(btn => btn.classList.remove('active'));
-                    b.classList.add('active');
-                    applyFiltersAndUpdateResults();
-                });
-            });
-
-            // Initialize limit buttons
-            selectedLimit = getParam('limit', "");
-            limitButtons.forEach(b => {
-                if (b.dataset.limit === selectedLimit) b.classList.add('active');
-                else b.classList.remove('active');
-                b.addEventListener('click', () => {
-                    selectedLimit = b.dataset.limit;
-                    limitButtons.forEach(btn => btn.classList.remove('active'));
-                    b.classList.add('active');
-                    applyFiltersAndUpdateResults();
-                });
-            });
-
-            // Initialize duration buttons
-            selectedMaxDuration = getParam('duration', "");
-            durationButtons.forEach(b => {
-                if (b.dataset.duration === selectedMaxDuration) b.classList.add('active');
-                else b.classList.remove('active');
-                b.addEventListener('click', () => {
-                    selectedMaxDuration = b.dataset.duration;
-                    durationButtons.forEach(btn => btn.classList.remove('active'));
-                    b.classList.add('active');
-                    applyFiltersAndUpdateResults();
-                });
-            });
-
-            // Initialize TV buttons
-            selectedTv = getParam('tv', "");
-            tvButtons.forEach(b => {
-                if (b.dataset.tv === selectedTv) b.classList.add('active');
-                else b.classList.remove('active');
-                b.addEventListener('click', () => {
-                    selectedTv = b.dataset.tv;
-                    tvButtons.forEach(btn => btn.classList.remove('active'));
-                    b.classList.add('active');
-                    applyFiltersAndUpdateResults();
-                });
-            });
-
-            // Initialize installation checkbox
-            installCheckbox.checked = getParam('installation', 'false') === 'true';
-            installCheckbox.addEventListener('change', applyFiltersAndUpdateResults);
-
-            // Initialize provider checkboxes from URL
-            const providersFromUrl = getParam('providers', '').split(',').filter(Boolean);
-            providerCheckboxes.forEach(cb => {
-                cb.checked = providersFromUrl.includes(cb.value);
-                cb.addEventListener('change', applyFiltersAndUpdateResults);
-            });
-
-            sortBySelect.addEventListener('change', () => {
-                selectedSort = sortBySelect.value;
-                applyFiltersAndUpdateResults();
-            });
-            selectedSort = getParam('sort', sortBySelect.value);
-            sortBySelect.value = selectedSort;
-
-            // Trigger search if URL has query parameters
-            // if (window.location.search) {
-            //     triggerSearch();
-            // }
-            searchBtn.addEventListener('click', triggerSearch);
-        });
-
-        // Helper function to get URL parameter
-        function getParam(name, defaultValue) {
-            const params = new URLSearchParams(window.location.search);
-            return params.has(name) ? params.get(name) : defaultValue;
-        }
-    </script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
