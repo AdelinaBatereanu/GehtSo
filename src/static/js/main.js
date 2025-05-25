@@ -50,6 +50,8 @@ const searchBtn = document.getElementById('search-btn');
 
 // --- Main search trigger ---
 async function triggerSearch() {
+    document.getElementById('loading-spinner').style.display = 'block';
+
     console.log('Search triggered');
     // Get address fields
     const streetInput = document.getElementById('street');
@@ -112,6 +114,7 @@ async function triggerSearch() {
         }
     }
     // applyFiltersAndUpdateResults();
+    document.getElementById('loading-spinner').style.display = 'none';
 }
 
 // --- Update shareable URL and browser history ---
