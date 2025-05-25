@@ -58,10 +58,17 @@ def fetch_offers(address, wants_fiber):
         "Content-Type": "application/json"
     }
     print("Fetching offers from Ping Perfect API...")
-    response = requests.post(BASE_URL, headers=headers, data=json_body, timeout=10)
-    response.raise_for_status()
-    results = response.json()
-    return results
+    try:
+        response = requests.post(BASE_URL, headers=headers, data=json_body, timeout=10)
+        response.raise_for_status()
+        results = response.json()
+        return results
+    except requests.Timeout:
+        print("Ping Perfect API request timed out.")
+        return []
+    except Exception as e:
+        print(f"Ping Perfect API error: {e}")
+        return []
 
 def transform_offer(offer):
     """

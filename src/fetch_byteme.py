@@ -28,12 +28,18 @@ def fetch_offers(address):
         installationService, tv, limitFrom, maxAge, voucherType, voucherValue
     """
     print("Fetching offers from ByteMe API...")
-    response = requests.get(BASE_URL, params=address, headers=headers)
-    # print(response.status_code)
-    response.raise_for_status()
-    offers = pd.read_csv(io.StringIO(response.text))
-    offers.drop_duplicates(inplace=True)
-    return offers
+    try:
+        response = requests.get(BASE_URL, params=address, headers=headers, timeout=10)
+        response.raise_for_status()
+        offers = pd.read_csv(io.StringIO(response.text))
+        offers.drop_duplicates(inplace=True)
+        return offers
+    except requests.Timeout:
+        print("ByteMe API request timed out.")
+        return pd.DataFrame()  # Return empty DataFrame on timeout
+    except Exception as e:
+        print(f"ByteMe API error: {e}")
+        return pd.DataFrame()
 
 # The following functions return the value of the column if it is not NaN, otherwise return np.nan
 def get_max_age(row):

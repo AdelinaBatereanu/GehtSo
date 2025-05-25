@@ -32,10 +32,13 @@ def fetch_available_products(address):
     auth = HTTPBasicAuth(USER, PASS)
     payload = {"address": address}
 
-    resp = requests.post(url, json=payload, auth=auth)
-    resp.raise_for_status()
-    data = resp.json()
-
+    try:
+        resp = requests.post(url, json=payload, auth=auth, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.Timeout:
+        print("Servus Speed available-products request timed out.")
+        return []
     product_ids = data.get("availableProducts")
     if not isinstance(product_ids, list):
         raise ValueError(f"Expected list of IDs, got {product_ids!r}")
@@ -60,10 +63,13 @@ async def fetch_details(session, product_id, address, semaphore):
 
     async with semaphore:
         # print(f"Fetching details for product {product_id}")
-        async with session.post(url, json=payload, auth=auth) as resp:
-            resp.raise_for_status()
-            # print(f"Successfully fetched details for product {product_id}")
-            return await resp.json()
+        try:
+            async with session.post(url, json=payload, auth=auth) as resp:
+                resp.raise_for_status()
+                return await resp.json()
+        except asyncio.TimeoutError:
+            print(f"Timeout fetching details for product {product_id}")
+            return None
 
 async def fetch_all_offers(product_ids, address):
     """
@@ -89,9 +95,14 @@ async def fetch_all_offers(product_ids, address):
                 discount (int): fixed amount in cents
     """
     semaphore = asyncio.Semaphore(5)
-    async with aiohttp.ClientSession() as session:
+    timeout = aiohttp.ClientTimeout(total=20)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         tasks = [fetch_details(session, pid, address, semaphore) for pid in product_ids]
-        return await asyncio.gather(*tasks)
+        try:
+            return await asyncio.gather(*tasks)
+        except asyncio.TimeoutError:
+            print("Servus Speed product-details requests timed out.")
+            return []
 
 """
 Note: when using the function below, the time taken to fetch all offers is around 3-4 minutes.

@@ -33,13 +33,18 @@ async def fetch_all_offers(address):
     all_offers = []
     page = 0
 
-    async with aiohttp.ClientSession() as session:
-        data = await fetch_offers_from_page(session, address, page)
-        all_offers.append(data)
-        while not data["last"]:
-            page += 1
+    timeout = aiohttp.ClientTimeout(total=15)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        try:
             data = await fetch_offers_from_page(session, address, page)
             all_offers.append(data)
+            while not data["last"]:
+                page += 1
+                data = await fetch_offers_from_page(session, address, page)
+                all_offers.append(data)
+        except asyncio.TimeoutError:
+            print("Verbyndich API request timed out.")
+            return []
 
     return all_offers
 

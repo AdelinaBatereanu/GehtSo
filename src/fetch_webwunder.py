@@ -47,10 +47,21 @@ def fetch_offers(installation, connection_type, address):
                     </soapenv:Envelope>"""
 
     headers = {"X-Api-Key": API_KEY}
-    response = requests.post(BASE_URL, data=envelope, headers=headers)
-    # print(response.text[:1000])  # Print the first 1000 characters of the response for debugging
-    response.raise_for_status()
-    return response
+    try:
+        response = requests.post(BASE_URL, data=envelope, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response
+    except requests.Timeout:
+        print("WebWunder API request timed out.")
+        # Return an empty response-like object or handle as needed
+        class DummyResponse:
+            text = "<offers></offers>"
+        return DummyResponse()
+    except Exception as e:
+        print(f"WebWunder API error: {e}")
+        class DummyResponse:
+            text = "<offers></offers>"
+        return DummyResponse()
 
 def parse_offers(response):
     """
