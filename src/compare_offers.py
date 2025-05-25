@@ -40,23 +40,42 @@ async def fetch_offers(address):
     ]
     return await asyncio.gather(*tasks)
 
-    loop = asyncio.get_event_loop()
-    df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = loop.run_until_complete(fetch_offers(address))
+    # loop = asyncio.get_event_loop()
+    # df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = loop.run_until_complete(fetch_offers(address))
 def get_all_offers(address): 
     df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers(address))   
     all_offers = pd.concat(
         [df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder],
         ignore_index=True
     )
-    all_offers["installation_included"] = all_offers["installation_included"].fillna(False).astype("boolean")
+    # all_offers["installation_included"] = all_offers["installation_included"].fillna(False).astype("boolean")
 
-    all_offers["cost_first_years_eur"] = all_offers["promo_price_eur"].fillna(all_offers["cost_eur"])
-    all_offers["after_two_years_eur"] = all_offers["after_two_years_eur"].fillna(all_offers["cost_eur"])
+    # all_offers["cost_first_years_eur"] = all_offers["promo_price_eur"].fillna(all_offers["cost_eur"])
+    # all_offers["after_two_years_eur"] = all_offers["after_two_years_eur"].fillna(all_offers["cost_eur"])
 
-    all_offers["is_unlimited"] = all_offers["is_unlimited"].fillna(True).astype("boolean")
-    all_offers = all_offers.where(pd.notnull(all_offers), None)
-    all_offers = all_offers.replace({np.nan: None})
+    # all_offers["is_unlimited"] = all_offers["is_unlimited"].fillna(True).astype("boolean")
+    # all_offers = all_offers.where(pd.notnull(all_offers), None)
+    # all_offers = all_offers.replace({np.nan: None})
     return all_offers
+
+def fill_columns(df):
+    required_columns = [
+        "cost_first_years_eur", "promo_price_eur", "cost_eur", "after_two_years_eur",
+        "installation_included", "is_unlimited", "speed_mbps", "max_age", "duration_months",
+        "tv", "limit_from_gb", "connection_type", "provider", "name"
+    ]
+    for col in required_columns:
+        if col not in df.columns:
+            df[col] = None
+
+    # Fill cost_first_years_eur and after_two_years_eur as before
+    df["cost_first_years_eur"] = df["promo_price_eur"].fillna(df["cost_eur"])
+    df["after_two_years_eur"] = df["after_two_years_eur"].fillna(df["cost_eur"])
+    df["installation_included"] = df["installation_included"].fillna(False).astype("boolean")
+    df["is_unlimited"] = df["is_unlimited"].fillna(True).astype("boolean")
+    df = df.where(pd.notnull(df), None)
+    df = df.replace({np.nan: None})
+    return df
 
 def filter_speed(df, min_speed):
     return df[df["speed_mbps"] >= min_speed]

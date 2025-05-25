@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response, stream_with_context
 import compare_offers
 from urllib.parse import urlencode
 import pandas as pd
 import numpy as np
 from utils import make_api_safe
+import json
+import sys
+import asyncio
 
 app = Flask(__name__)
 
@@ -64,38 +67,65 @@ def get_offers():
     params = {key: value for key, value in params.items() if value is not None}
     share_url = make_share_url(request.host_url, params)
     print(f"Share URL: {share_url}")
+    
+    async def generate_async():
+        loop = asyncio.get_event_loop()
+        tasks = [
+            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_byteme_offers, address, "ByteMe"),
+            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_pingperfect_offers, address, "Ping Perfect"),
+            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_servusspeed_offers, address, "Servus Speed"),
+            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_verbyndich_offers, address, "Verbyndich"),
+            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_webwunder_offers, address, "WebWunder"),
+        ]
+        for coro in asyncio.as_completed(tasks):
+            df = await coro
 
-    df = compare_offers.get_all_offers(address)
+            # --- Handle missing values for this provider ---
+            df = compare_offers.fill_columns(df)
+        
+            if speed:
+                df = compare_offers.filter_speed(df, speed)
+            if age:
+                df = compare_offers.filter_age(df, age)
+            # if cost:
+            #     df = compare_offers.filter_cost(df, cost)
+            if duration:
+                df = compare_offers.filter_duration(df, duration)
+            if tv_required:
+                df = compare_offers.filter_tv(df, str2bool(tv_required))
+            if limit == "none":
+                df = compare_offers.filter_limit(df, "none")
+            elif limit:
+                df = compare_offers.filter_limit(df, int(limit))
+            if installation_required:
+                df = compare_offers.filter_installation(df, str2bool(installation_required))
+            if connection_types is not None:
+                df = compare_offers.filter_connection_types(df, connection_types)
+            if providers:
+                df = compare_offers.filter_provider(df, providers)
 
-    if speed:
-        df = compare_offers.filter_speed(df, speed)
-    if age:
-        df = compare_offers.filter_age(df, age)
-    # if cost:
-    #     df = compare_offers.filter_cost(df, cost)
-    if duration:
-        df = compare_offers.filter_duration(df, duration)
-    if tv_required:
-        df = compare_offers.filter_tv(df, str2bool(tv_required))
-    if limit == "none":
-        df = compare_offers.filter_limit(df, "none")
-    elif limit:
-        df = compare_offers.filter_limit(df, int(limit))
-    if installation_required:
-        df = compare_offers.filter_installation(df, str2bool(installation_required))
-    if connection_types is not None:
-        df = compare_offers.filter_connection_types(df, connection_types)
-    if providers:
-        df = compare_offers.filter_provider(df, providers)
+            if sort == "cost_first_years":
+                df = compare_offers.sort_by_first_years_cost(df)
+            elif sort == "cost_later_years":
+                df = compare_offers.sort_by_after_two_years_cost(df)
+            elif sort == "speed":
+                df = compare_offers.sort_by_speed(df)
 
-    if sort == "cost_first_years":
-        df = compare_offers.sort_by_first_years_cost(df)
-    elif sort == "cost_later_years":
-        df = compare_offers.sort_by_after_two_years_cost(df)
-    elif sort == "speed":
-        df = compare_offers.sort_by_speed(df)
+            for offer in df.to_dict(orient="records"):
+                yield json.dumps(offer) + '\n'
 
-    return jsonify(df.to_dict(orient="records"))
+    def generate():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        agen = generate_async()  # This is an async generator, not a coroutine!
+        try:
+            while True:
+                chunk = loop.run_until_complete(agen.__anext__())
+                yield chunk
+        except StopAsyncIteration:
+            pass
+
+    return Response(stream_with_context(generate()), mimetype='application/x-ndjson')
 
 @app.route("/")
 def index():

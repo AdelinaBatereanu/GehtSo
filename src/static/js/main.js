@@ -49,7 +49,7 @@ let allOffers = [];
 const searchBtn = document.getElementById('search-btn');
 
 // --- Main search trigger ---
-function triggerSearch() {
+async function triggerSearch() {
     console.log('Search triggered');
     // Get address fields
     const streetInput = document.getElementById('street');
@@ -80,16 +80,38 @@ function triggerSearch() {
 
     // Fetch offers from backend
     const apiUrl = `/offers?${params.toString()}`;
-    fetch(apiUrl)
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not OK');
-            return response.json();
-        })
-        .then(data => {
-            allOffers = data;
-            applyFiltersAndUpdateResults();
-        })
-        .catch(err => console.error('Fetch error:', err));
+    const response = await fetch(apiUrl);
+
+    const reader = response.body.getReader();
+    let decoder = new TextDecoder();
+    let buffer = '';
+    let resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+    // allOffers = [];
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // Try to parse offers as they arrive (this is a simple example for NDJSON or comma-separated JSON objects)
+        let offers = buffer.split('\n'); // or split by ',' if comma-separated
+        buffer = offers.pop(); // last chunk may be incomplete
+
+        for (let offerStr of offers) {
+            if (!offerStr.trim()) continue;
+            try {
+                let offer = JSON.parse(offerStr);
+                allOffers.push(offer);
+                // Always show sorted offers
+                applyFiltersAndUpdateResults();
+                updateSummary();
+            } catch (e) {
+                // incomplete JSON, wait for more data
+            }
+        }
+    }
+    // applyFiltersAndUpdateResults();
 }
 
 // --- Update shareable URL and browser history ---
@@ -128,6 +150,12 @@ function updateShareUrlAndHistory() {
     document.getElementById('share_url').value = window.location.href;
 }
 
+function updateSummary() {
+    const providers = new Set(allOffers.map(o => o.provider));
+    const summary = `Found ${allOffers.length} offer${allOffers.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
+    document.getElementById('offers-summary').textContent = summary;
+}
+
 // --- Render offer cards in results area ---
 function updateResults(data) {
     const resultsDiv = document.getElementById('results');
@@ -137,10 +165,6 @@ function updateResults(data) {
         const cardElement = createCard(offer);
         resultsDiv.appendChild(cardElement);
     });
-
-    const providers = new Set(data.map(o => o.provider));
-    const summary = `Found ${data.length} offer${data.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
-    document.getElementById('offers-summary').textContent = summary;
 
     // Update share field
     document.getElementById('share_url').value = window.location.href;

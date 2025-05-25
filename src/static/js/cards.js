@@ -50,7 +50,7 @@
                 const ageWarning = document.createElement('div');
                 ageWarning.className = 'small mb-1';
                 ageWarning.style.fontSize = '0.92em';
-                ageWarning.innerHTML = '&#9888; Available for people under ' + offer.max_age;
+                ageWarning.innerHTML = '&#9888; only for people under ' + offer.max_age;
                 nameContainer.appendChild(ageWarning);
             }
             // TV info
@@ -97,16 +97,19 @@
                     detailsDiv = document.createElement('div');
                     detailsDiv.className = 'mt-2 small border-top pt-2';
                     detailsDiv.style.fontSize = '0.92em';
+                    let connectionType = offer.connection_type;
+                    if (connectionType && connectionType.toLowerCase() === 'dsl') {
+                        connectionType = 'DSL';
+                    }
                     detailsDiv.innerHTML = `
                         <strong>Provider:</strong> ${offer.provider}<br>
                         <strong>Product:</strong> ${offer.name}<br>
-                        <strong>Connection:</strong> ${offer.connection_type}<br>
+                        <strong>Connection:</strong> ${connectionType}<br>
                         <strong>Min. contract duration:</strong> ${offer.duration_months} months<br>
                         <strong>Data limit:</strong> ${offer.limit_from_gb ? offer.limit_from_gb + ' GB' : 'Unlimited'}<br>
                         <strong>Installation included:</strong> ${offer.installation_included ? 'Yes' : 'No'}<br>
                         <strong>TV:</strong> ${offer.tv ? offer.tv : 'Not included'}<br>
-                    `;
-                    nameContainer.style.minHeight = '239px';
+                    `;   nameContainer.style.minHeight = '239px';
                     nameContainer.appendChild(detailsDiv);
                     moreInfoLink.textContent = 'Less info';
                 } else {
