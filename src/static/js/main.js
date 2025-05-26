@@ -12,50 +12,11 @@ import {
     initFilters,
 } from './filters.js';
 
-import { createCard } from './cards.js';
+import { setupShare } from './share.js';
+import { createCard } from './card.js';
 import { setFilterState } from './filters.js';
 
 let allOffers = [];
-
-// --- Share button functionality ---
-document.getElementById('share-btn').addEventListener('click', async () => {
-
-    const offers = allOffers;
-
-    const filters = {
-        speed: selectedSpeed,
-        limit: selectedLimit,
-        duration: selectedMaxDuration,
-        tv: selectedTv,
-        connection_types: getSelectedConnectionTypes(),
-        providers: getSelectedProviders(),
-        installation: installCheckbox.checked,
-        age: ageInput.value.trim(),
-        showAllAges: showAllAgesCheckbox.checked,
-        sort: selectedSort,
-    };
-// Ensure filters are properly formatted for JSON
-    try {
-        const resp = await fetch('/share', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ offers, filters })
-        });
-        const data = await resp.json();
-  
-        if (resp.ok) {
-          await navigator.clipboard.writeText(data.share_url);
-          alert('Share link copied to clipboard!:\n' + data.share_url);
-        } else {
-          alert('Error creating share link: ' + data.error);
-        }
-      } catch (err) {
-        alert('Network error: ' + err);
-      }
-  });
-
-// --- Search button and loading spinner ---
-const searchBtn = document.getElementById('search-btn');
 
 // --- Main search trigger ---
 async function triggerSearch() {
@@ -212,8 +173,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (street && houseNumber && plz && city) {
         triggerSearch();
     }
-    // Search button
-    searchBtn.addEventListener('click', triggerSearch);
+
+    setupShare({
+        getOffers: () => allOffers,
+        getFilters: () => ({
+            speed: selectedSpeed,
+            limit: selectedLimit,
+            duration: selectedMaxDuration,
+            tv: selectedTv,
+            connection_types: getSelectedConnectionTypes(),
+            providers: getSelectedProviders(),
+            installation: installCheckbox.checked,
+            age: ageInput.value.trim(),
+            showAllAges: showAllAgesCheckbox.checked,
+            sort: selectedSort,
+        })
+    });
 });
 
 // --- Helper: get URL parameter or default ---

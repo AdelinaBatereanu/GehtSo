@@ -12,3 +12,17 @@
     padding-left: 0.2rem;
     padding-right: 0.5rem;
 }
+
+body {
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+
+/* .share-link-btn .share-link-text {
+    text-decoration: none;
+    color: #0d6efd;
+    transition: text-decoration 0.2s;
+}
+.share-link-btn:hover .share-link-text,
+.share-link-btn:focus .share-link-text {
+    text-decoration: underline;
+} */

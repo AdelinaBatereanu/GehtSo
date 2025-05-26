@@ -33,6 +33,7 @@ const col = document.createElement('div');
         const left = document.createElement('div');
         left.className = 'd-flex flex-row align-items-start justify-content-start';
         left.style.minWidth = '0';
+        left.style.width = '55%';
 
         // Image
         const img = document.createElement('img');
@@ -75,10 +76,6 @@ const col = document.createElement('div');
             infoContainer.appendChild(tvInfo);
         }
         nameContainer.appendChild(infoContainer);
-        // Filler for spacing
-        // const filler = document.createElement('div');
-        // filler.style = 'flex-grow:1;';
-        // nameContainer.appendChild(filler);
 
         // --- More info link (expand/collapse) ---
         const moreInfoContainer = document.createElement('div');
@@ -157,14 +154,14 @@ const col = document.createElement('div');
         // --- Speed ---
         const speed = document.createElement('div');
         speed.className = 'fw-medium fs-4';
-        speed.style.width = '50%';
+        speed.style.width = '45%';
         speed.textContent = `${offer.speed_mbps} Mbps`;
         centerRight.appendChild(speed);
 
         // --- Price ---
         const priceContainer = document.createElement('div');
         priceContainer.className = 'd-flex flex-column align-items-end';
-        priceContainer.style.width = '50%';
+        priceContainer.style.width = '55%';
 
         // Original price and discount
         if (offer.cost_eur && offer.cost_first_years_eur && offer.cost_eur !== offer.cost_first_years_eur) {
@@ -196,8 +193,8 @@ const col = document.createElement('div');
 
         // Price label ("Mean cost per month")
         const priceLabel = document.createElement('div');
-        priceLabel.className = 'small text-muted';
-        priceLabel.style.fontSize = '0.93em';
+        priceLabel.className = 'small text-muted text-end';
+        priceLabel.style.fontSize = '0.85em';
         priceLabel.textContent = 'Mean cost per month';
         priceContainer.appendChild(priceLabel);
 
