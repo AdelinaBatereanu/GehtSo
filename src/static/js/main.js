@@ -20,7 +20,9 @@ let allOffers = [];
 
 // --- Main search trigger ---
 async function triggerSearch() {
-    document.getElementById('loading-spinner').style.display = 'block';
+
+    // Show loading spinner
+    document.getElementById('loading-spinner').classList.remove('d-none');
 
     console.log('Search triggered');
     // Get address fields
@@ -28,6 +30,7 @@ async function triggerSearch() {
     const houseNumberInput = document.getElementById('house_number');
     const plzInput = document.getElementById('plz');
     const cityInput = document.getElementById('city');
+    const errorDiv = document.getElementById('address-error');
 
     // Validate address
     if (
@@ -36,9 +39,17 @@ async function triggerSearch() {
         !plzInput.value.trim() ||
         !cityInput.value.trim()
     ) {
-        alert('Please fill in all address fields.');
+        // Show error above PLZ
+        errorDiv.textContent = "Please fill in all address fields.";
+        errorDiv.classList.remove('d-none');
         return;
+    } else {
+        // Hide error if present
+        errorDiv.classList.add('d-none');
     }
+
+    // Show main content
+    document.getElementById('main-content').classList.remove('d-none');
 
     // Build query params for API
     const params = new URLSearchParams();
@@ -86,8 +97,7 @@ async function triggerSearch() {
             }
         }
     }
-    document.getElementById('loading-spinner').style.display = 'none';
-}
+    document.getElementById('loading-spinner').classList.add('d-none');}
 
 // --- Update browser history ---
 function updateHistory() {
@@ -176,6 +186,13 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerSearch();
     }
 
+    // Search button event
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', triggerSearch);
+    }
+
+    // Create share URL and set up sharing buttons
     setupShare({
         getOffers: () => allOffers,
         getFilters: () => ({
