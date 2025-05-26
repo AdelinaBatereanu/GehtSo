@@ -1,23 +1,31 @@
-from dotenv import load_dotenv
+import asyncio
+import time
+import logging
+
+import nest_asyncio
+nest_asyncio.apply()
+
 import pandas as pd
 pd.set_option('future.no_silent_downcasting', True)
+import numpy as np
+
 from fetch_byteme import get_offers as get_byteme_offers
 from fetch_pingperfect import get_offers as get_pingperfect_offers
 from fetch_servusspeed import get_offers as get_servusspeed_offers
 from fetch_verbyndich import get_offers as get_verbyndich_offers
 from fetch_webwunder import get_offers as get_webwunder_offers
-import asyncio
-import time
-import nest_asyncio
-nest_asyncio.apply()
-import logging
-import numpy as np
-
 
 MAX_RETRIES = 3
 RETRY_BACKOFF = 5  # seconds
 
 def safe_get_offers(get_offers_func, address, provider_name):
+    """
+    Fetch offers with retry logic.
+    Args:
+        get_offers_func (function): Function to fetch offers.
+        address (dict): Address to fetch offers for.
+        provider_name (str): Name of the provider for logging.
+    """
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             return get_offers_func(address)
@@ -30,52 +38,52 @@ def safe_get_offers(get_offers_func, address, provider_name):
                 return pd.DataFrame()
 
 async def fetch_offers(address):
+    """
+    Fetch offers from multiple providers asynchronously.
+    Args:
+        address (dict): Address to fetch offers for.
+    Returns:
+        list: List of DataFrames with offers from different providers.
+    """
     loop = asyncio.get_event_loop()
     tasks = [
         loop.run_in_executor(None, safe_get_offers, get_byteme_offers, address, "ByteMe"),
         loop.run_in_executor(None, safe_get_offers, get_pingperfect_offers, address, "Ping Perfect"),
         loop.run_in_executor(None, safe_get_offers, get_servusspeed_offers, address, "Servus Speed"),
-        loop.run_in_executor(None, safe_get_offers, get_verbyndich_offers, address, "Verbyndich"),
+        loop.run_in_executor(None, safe_get_offers, get_verbyndich_offers, address, "VerbynDich"),
         loop.run_in_executor(None, safe_get_offers, get_webwunder_offers, address, "WebWunder"),
     ]
     return await asyncio.gather(*tasks)
 
-    # loop = asyncio.get_event_loop()
-    # df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = loop.run_until_complete(fetch_offers(address))
-def get_all_offers(address): 
-    df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers(address))   
-    all_offers = pd.concat(
-        [df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder],
-        ignore_index=True
-    )
-    # all_offers["installation_included"] = all_offers["installation_included"].fillna(False).astype("boolean")
-
-    # all_offers["cost_first_years_eur"] = all_offers["promo_price_eur"].fillna(all_offers["cost_eur"])
-    # all_offers["after_two_years_eur"] = all_offers["after_two_years_eur"].fillna(all_offers["cost_eur"])
-
-    # all_offers["is_unlimited"] = all_offers["is_unlimited"].fillna(True).astype("boolean")
-    # all_offers = all_offers.where(pd.notnull(all_offers), None)
-    # all_offers = all_offers.replace({np.nan: None})
-    return all_offers
-
 def fill_columns(df):
+    """
+    Fill missing columns in the DataFrame with None or default values.
+    Args:
+        df (pd.DataFrame): DataFrame with offers.
+    Returns:
+        pd.DataFrame: DataFrame with filled columns.
+    """
     required_columns = [
         "cost_first_years_eur", "promo_price_eur", "cost_eur", "after_two_years_eur",
-        "installation_included", "is_unlimited", "speed_mbps", "max_age", "duration_months",
+        "installation_included", "speed_mbps", "max_age", "duration_months",
         "tv", "limit_from_gb", "connection_type", "provider", "name"
     ]
     for col in required_columns:
         if col not in df.columns:
             df[col] = None
 
-    # Fill cost_first_years_eur and after_two_years_eur as before
+    # if no promo price is given, use cost_eur
     df["cost_first_years_eur"] = df["promo_price_eur"].fillna(df["cost_eur"])
+    # if the price does not change after two years, use cost_eur
     df["after_two_years_eur"] = df["after_two_years_eur"].fillna(df["cost_eur"])
+    # if no information about the installation is given, assume it is not included
     df["installation_included"] = df["installation_included"].fillna(False).astype("boolean")
-    df["is_unlimited"] = df["is_unlimited"].fillna(True).astype("boolean")
+    # convert np.nan and pd.NA to None
     df = df.where(pd.notnull(df), None)
     df = df.replace({np.nan: None})
     return df
+
+"""Filtering and sorting functions for offers DataFrame."""
 
 def filter_speed(df, min_speed):
     return df[df["speed_mbps"] >= min_speed]
@@ -116,6 +124,9 @@ def filter_connection_types(df, connection_types):
     return df[df["connection_type"].isin(connection_types)]
 
 def filter_provider(df, providers):
+    """ 
+    Args: providers (list): list of provider names to filter by
+    """
     return df[df["provider"].isin(providers)]
 
 def filter_age(df, age):
@@ -132,36 +143,18 @@ def sort_by_after_two_years_cost(df, ascending=True):
 def sort_by_speed(df, ascending=False):
     return df.sort_values(by="speed_mbps", ascending=ascending)
 
-def mark_missing(cell):
-    if cell is None:
-        return "<<None>>"
-    if cell is pd.NA:
-        return "<<pd.NA>>"
-    # use numpy to detect NaN
-    if isinstance(cell, float) and np.isnan(cell):
-        return "<<np.nan>>"
-    return cell
-
 if __name__ == "__main__":
-    # pass
     address = {
         "street": "Hauptstrasse",
         "house_number": "5A",
         "plz": "10115",
         "city": "Berlin"
     }
-    all_offers = get_all_offers(address)
-    debug_df = all_offers.applymap(mark_missing)
-    debug_df.to_csv("df_check.csv", index=False)
-    # pd.set_option('display.max_columns', None)
-    # all_offers = get_all_offers()
-    # filtered = filter_installation(all_offers, True)
-    # print("=== Cheapest DSL Offers ===")
-    # print(sort_by_first_years_cost(filtered).head(10))
+    df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers(address))   
+    all_offers = pd.concat(
+        [df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder],
+        ignore_index=True
+    )
+    all_offers.to_csv("df_check.csv", index=False)
 
-#TODO: check that all inputs are made safe for api
-#TODO: change None to N/A or np.nan
-#TODO: add retry mechanisms where needed
-#TODO: delete unlimited columns
-#TODO: add error handling
 #TODO: check requirements

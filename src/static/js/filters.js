@@ -1,3 +1,5 @@
+// Filters module for the comparison page
+
 // Filter controls
 export const installCheckbox = document.getElementById('installation_included');
 export const speedButtons = document.querySelectorAll('#speed-buttons button');
@@ -18,12 +20,14 @@ export let selectedTv = "";
 export let selectedSort = sortBySelect.value;
 
 // --- Helper functions for filters ---
+
 export function getSelectedConnectionTypes() {
     // Returns array of checked connection types
     return Array.from(connectionTypeCheckboxes)
         .filter(cb => cb.checked)
         .map(cb => cb.value);
 }
+
 export function getSelectedProviders() {
     return Array.from(providerCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
 }
@@ -119,19 +123,28 @@ export function initFilters({ getParam, applyFiltersAndUpdateResults }) {
     selectedSort = getParam('sort', sortBySelect.value);
     sortBySelect.value = selectedSort;
 
+    // Reset filters button
     document.getElementById('reset-filters').addEventListener('click', () => {
         // Reset all filter controls to default values
-        // Example for checkboxes:
         document.querySelectorAll('#filters input[type="checkbox"]').forEach(cb => cb.checked = false);
-        // Example for buttons:
         document.querySelectorAll('#filters button').forEach(btn => btn.classList.remove('active'));
-        // Reset selects, inputs, etc. as needed
-        // Then trigger your filter update logic
+        ageInput.value = "";
+        showAllAgesCheckbox.checked = false;
+
+        // Reset filter state variables
+        selectedSpeed = "";
+        selectedLimit = "";
+        selectedMaxDuration = "";
+        selectedTv = "";
+
+        // Trigger filter update logic
         applyFiltersAndUpdateResults();
     });
 
 }
 
+// --- Filter state management ---
+// Sets the filter state based on the provided filter object (updates the UI to reflect the current filter state)
 export function setFilterState(f) {
     // Speed (button group)
     if (f.speed !== undefined) {

@@ -1,6 +1,3 @@
-// --- State and DOM references ---
-let allOffers = [];
-
 import {
     installCheckbox,
     ageInput,
@@ -14,13 +11,15 @@ import {
     getSelectedProviders,
     initFilters,
 } from './filters.js';
+
 import { createCard } from './cards.js';
 import { setFilterState } from './filters.js';
 
+let allOffers = [];
+
+// --- Share button functionality ---
 document.getElementById('share-btn').addEventListener('click', async () => {
-    // 1. Grab the offers data from your page.
-    //    For now, assume you have it in a global JS variable `window.offers`.
-    //    If not, we’ll extract it from the DOM in a moment.
+
     const offers = allOffers;
 
     const filters = {
@@ -35,12 +34,12 @@ document.getElementById('share-btn').addEventListener('click', async () => {
         showAllAges: showAllAgesCheckbox.checked,
         sort: selectedSort,
     };
-
+// Ensure filters are properly formatted for JSON
     try {
         const resp = await fetch('/share', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ offers, filters }) // <-- FIXED!
+          body: JSON.stringify({ offers, filters })
         });
         const data = await resp.json();
   
@@ -55,6 +54,7 @@ document.getElementById('share-btn').addEventListener('click', async () => {
       }
   });
 
+// --- Search button and loading spinner ---
 const searchBtn = document.getElementById('search-btn');
 
 // --- Main search trigger ---
@@ -79,9 +79,6 @@ async function triggerSearch() {
         return;
     }
 
-    // Restore connection type checkboxes from URL
-    const typesFromUrl = getParam('connection_types', '').split(',').filter(Boolean);
-
     // Build query params for API
     const params = new URLSearchParams();
     params.set('street', streetInput.value.trim());
@@ -93,6 +90,7 @@ async function triggerSearch() {
     const apiUrl = `/offers?${params.toString()}`;
     const response = await fetch(apiUrl);
 
+    // Check for errors
     const reader = response.body.getReader();
     let decoder = new TextDecoder();
     let buffer = '';
@@ -100,15 +98,17 @@ async function triggerSearch() {
     resultsDiv.innerHTML = '';
     allOffers = [];
 
+    // Handle streaming response
     while (true) {
         const { value, done } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
 
-        // Try to parse offers as they arrive (this is a simple example for NDJSON or comma-separated JSON objects)
-        let offers = buffer.split('\n'); // or split by ',' if comma-separated
+        // Split buffer into complete JSON objects
+        let offers = buffer.split('\n');
         buffer = offers.pop(); // last chunk may be incomplete
 
+        // Process each complete offer
         for (let offerStr of offers) {
             if (!offerStr.trim()) continue;
             try {
@@ -116,19 +116,19 @@ async function triggerSearch() {
                 allOffers.push(offer);
                 // Always show sorted offers
                 applyFiltersAndUpdateResults();
+                // Update results immediately
                 updateSummary();
             } catch (e) {
                 // incomplete JSON, wait for more data
             }
         }
     }
-    // applyFiltersAndUpdateResults();
     document.getElementById('loading-spinner').style.display = 'none';
 }
 
-// --- Update shareable URL and browser history ---
-function updateShareUrlAndHistory() {
-    // Gather all filter values
+// --- Update browser history ---
+function updateHistory() {
+    // Get current filter values
     const street = document.getElementById('street').value.trim();
     const houseNumber = document.getElementById('house_number').value.trim();
     const plz = document.getElementById('plz').value.trim();
@@ -139,6 +139,7 @@ function updateShareUrlAndHistory() {
     if (houseNumber) params.set('house_number', houseNumber);
     if (plz) params.set('plz', plz);
     if (city) params.set('city', city);
+
     if (selectedSpeed) params.set('speed', selectedSpeed);
     if (selectedLimit) params.set('limit', selectedLimit);
     if (selectedMaxDuration) params.set('duration', selectedMaxDuration);
@@ -156,12 +157,12 @@ function updateShareUrlAndHistory() {
     }
     if (selectedSort) params.set('sort', selectedSort);
 
-    // Update browser URL and share field
+    // Update browser URL
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
-    document.getElementById('share_url').value = window.location.href;
 }
 
+// --- Update summary text based on current offers ---
 function updateSummary(data) {
     const providers = new Set(data.map(o => o.provider));
     const summary = `Found ${data.length} offer${data.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
@@ -177,9 +178,6 @@ function updateResults(data) {
         const cardElement = createCard(offer);
         resultsDiv.appendChild(cardElement);
     });
-
-    // Update share field
-    document.getElementById('share_url').value = window.location.href;
 }
 
 // --- On page load: initialize filters, restore state from URL, set up events ---
@@ -204,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         applyFiltersAndUpdateResults();
         updateSummary && updateSummary();
-        // Optionally hide the loading spinner if present
+        // Hide the loading spinner if present
         const spinner = document.getElementById('loading-spinner');
         if (spinner) spinner.style.display = 'none';
         return; // Don't auto-trigger search if snapshot is loaded
@@ -280,7 +278,7 @@ export function applyFiltersAndUpdateResults() {
 
     updateSummary(filtered);
     updateResults(filtered);
-    updateShareUrlAndHistory();
+    updateHistory();
 }
 
 initFilters({ getParam, applyFiltersAndUpdateResults });

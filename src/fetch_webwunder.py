@@ -1,11 +1,12 @@
-from dotenv import load_dotenv
 import os
 import requests
-import pandas as pd
 import xml.etree.ElementTree as ET
+import pandas as pd
 import numpy as np
 
+from dotenv import load_dotenv
 load_dotenv()
+
 API_KEY = os.getenv("WEBWUNDER_API_KEY")
 
 BASE_URL = "https://webwunder.gendev7.check24.fun/endpunkte/soap/ws/getInternetOffers"
@@ -53,7 +54,7 @@ def fetch_offers(installation, connection_type, address):
         return response
     except requests.Timeout:
         print("WebWunder API request timed out.")
-        # Return an empty response-like object or handle as needed
+        # Return an empty response-like object
         class DummyResponse:
             text = "<offers></offers>"
         return DummyResponse()

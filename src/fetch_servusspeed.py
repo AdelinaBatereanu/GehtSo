@@ -1,13 +1,14 @@
-from dotenv import load_dotenv
 import os, requests
 from requests.auth import HTTPBasicAuth
-import pandas as pd
-import numpy as np
+from aiohttp import BasicAuth
 import asyncio
 import aiohttp
-from aiohttp import BasicAuth
+import pandas as pd
+import numpy as np
 
+from dotenv import load_dotenv
 load_dotenv()
+
 USER = os.getenv("SERVUSSPEED_USERNAME")
 PASS = os.getenv("SERVUSSPEED_PASSWORD")
 
@@ -165,7 +166,6 @@ def transform_offer(offer):
     data["tv"] = info.get("tv")
     # searches for the limit and sets the unlimited flag
     data["limit_from_gb"] = info["limitFrom"] if info["limitFrom"] is not None else np.nan
-    data["is_unlimited"] = False if data["limit_from_gb"] else True 
     
     data["max_age"] = int(info.get("maxAge"))
     return data

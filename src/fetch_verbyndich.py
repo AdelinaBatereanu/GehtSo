@@ -1,14 +1,13 @@
-import requests 
-from dotenv import load_dotenv
 import os
 import re
-import pandas as pd
-import numpy as np
-from utils import make_api_safe
 import asyncio
 import aiohttp
+import pandas as pd
+import numpy as np
 
+from dotenv import load_dotenv
 load_dotenv()
+
 API_KEY = os.getenv("VERBYNDICH_API_KEY")
 
 BASE_URL = "https://verbyndich.gendev7.check24.fun/check24/data"
@@ -65,13 +64,7 @@ def parse_description(desc):
     data["duration_months"] = int(m.group(1)) if (m := re.search(r"Mindestvertragslaufzeit (\d+) Monate", desc)) else np.nan
     data["max_age"] = int(m.group(1)) if (m := re.search(r"nur für Personen unter (\d+) Jahren", desc)) else np.nan
     # searches for the limit and sets the unlimited flag
-    limit = re.search(r"Ab (\d+)GB pro Monat wird die Geschwindigkeit gedrosselt", desc)
-    if limit:
-        data["limit_from_gb"] = int(limit.group(1))
-        data["is_unlimited"] = False
-    else: 
-        data["limit_from_gb"] = np.nan
-        data["is_unlimited"] = True
+    data["limit_from_gb"] = int(m.group(1)) if (m := re.search(r"Ab (\d+)GB pro Monat wird die Geschwindigkeit gedrosselt", desc)) else np.nan
     # seaches for the max voucher value and promo duration
     data["voucher_fixed_eur"] = float(m.group(1)) if (m := re.search(r"Rabatt beträgt (\d+)€", desc)) else np.nan
     data["promo_duration_months"] = int(m.group(1)) if  (m := re.search(r"monatliche Rechnung bis zum (\d+)\. Monat", desc)) else np.nan

@@ -1,11 +1,12 @@
 import requests
 import io
-from dotenv import load_dotenv
 import os
 import pandas as pd
 import numpy as np
 
+from dotenv import load_dotenv
 load_dotenv()
+
 API_KEY = os.getenv("BYTEME_API_KEY")
 headers = {"X-Api-Key": API_KEY}
 
@@ -54,10 +55,6 @@ def get_limit(row):
     if pd.isna(row['limitFrom']):
         return np.nan
     return int(row['limitFrom'])
-def is_unlimited(row):
-    if pd.isna(row['limitFrom']):
-        return True
-    return False
 def get_tv(row):
     if pd.isna(row['tv']):
         return pd.NA
@@ -105,13 +102,11 @@ def transform_offers(offers):
     offers.loc[~mask, 'promo_price_eur'] = offers.loc[~mask, 'cost_eur'] - (offers.loc[~mask, 'voucher_fixed_eur']) / 24
 
     offers['limit_from_gb'] = offers.apply(get_limit, axis=1).astype(int)
-    offers['is_unlimited'] = offers.apply(is_unlimited, axis=1)
 
     order = [
         'provider', 'product_id', 'name', 'speed_mbps', 'cost_eur', 'promo_price_eur', 'duration_months',
         'after_two_years_eur', 'connection_type', 'installation_included', 'tv',
-        'max_age', 'voucher_fixed_eur', 'voucher_percent',
-        'is_unlimited', 'limit_from_gb'
+        'max_age', 'voucher_fixed_eur', 'voucher_percent', 'limit_from_gb'
     ]
     return offers[order]
 

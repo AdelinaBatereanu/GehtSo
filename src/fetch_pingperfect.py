@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import os
 import time
 import hmac
@@ -8,7 +7,9 @@ import json
 import pandas as pd
 import numpy as np
 
+from dotenv import load_dotenv
 load_dotenv() 
+
 CLIENT_ID = os.getenv("PINGPERFECT_CLIENT_ID")
 SIGNATURE_SECRET = os.getenv("PINGPERFECT_SIGNATURE_SECRET")
 
@@ -104,7 +105,6 @@ def transform_offer(offer):
         "tv":                   info.get("tv"),
         "max_age":              info.get("maxAge") if info.get("maxAge") else np.nan,
         "limit_from_gb":        info.get("limitFrom") if info.get("limitFrom") else np.nan,
-        "is_unlimited":         False if info.get("limitFrom") else True
     }
 
 def get_offers(address):
