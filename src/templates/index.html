@@ -65,6 +65,7 @@
             <div class="mb-3">
                 <label for="share_url" class="form-label">Share this link:</label>
                 <input type="text" id="share_url" class="form-control" readonly>
+                <button id="share-btn">Share this comparison</button>
               </div>
             <!-- Sidebar filters -->
             <div class="sidebar-col col-md-3 mb-2">
@@ -180,6 +181,18 @@
             </div>
         </div>
     </div>
+    <script>
+        {% if offers is defined %}
+          window.snapshotOffers = {{ offers|tojson|safe }};
+        {% else %}
+          window.snapshotOffers = null;
+        {% endif %}
+        {% if filters is defined %}
+          window.snapshotFilters = {{ filters|tojson|safe }};
+        {% else %}
+          window.snapshotFilters = null;
+        {% endif %}
+    </script>
     <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

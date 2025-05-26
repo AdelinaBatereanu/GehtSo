@@ -161,7 +161,6 @@ if __name__ == "__main__":
 
 #TODO: check that all inputs are made safe for api
 #TODO: change None to N/A or np.nan
-#TODO: add timeout
 #TODO: add retry mechanisms where needed
 #TODO: delete unlimited columns
 #TODO: add error handling

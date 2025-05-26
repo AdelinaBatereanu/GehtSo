@@ -1,3 +1,6 @@
+// --- State and DOM references ---
+let allOffers = [];
+
 import {
     installCheckbox,
     ageInput,
@@ -12,39 +15,45 @@ import {
     initFilters,
 } from './filters.js';
 import { createCard } from './cards.js';
+import { setFilterState } from './filters.js';
 
-// --- Sample offers for demo (used if no query params) ---
-const sampleOffer = {
-    provider: "ByteMe",
-    name: "Super Fast Internet 1000",
-    speed_mbps: 1000,
-    cost_first_years_eur: 29.99,
-    cost_eur: 34.99,
-    duration_months: 24,
-    tv: "TV Super",
-    limit_from_gb: null,
-    connection_type: "fiber",
-    installation_included: true,
-    max_age: 25,
-    after_two_years_eur: 37.99
-};
-const sampleOffer2 = {
-    provider: "ByteMe",
-    name: "Super Fast Internet 1000",
-    speed_mbps: 1000,
-    cost_first_years_eur: 29.99,
-    cost_eur: 34.99,
-    duration_months: 24,
-    tv: null,
-    limit_from_gb: null,
-    connection_type: "fiber",
-    installation_included: true,
-    max_age: null,
-    after_two_years_eur: 37.99
-};
+document.getElementById('share-btn').addEventListener('click', async () => {
+    // 1. Grab the offers data from your page.
+    //    For now, assume you have it in a global JS variable `window.offers`.
+    //    If not, we’ll extract it from the DOM in a moment.
+    const offers = allOffers;
 
-// --- State and DOM references ---
-let allOffers = [];
+    const filters = {
+        speed: selectedSpeed,
+        limit: selectedLimit,
+        duration: selectedMaxDuration,
+        tv: selectedTv,
+        connection_types: getSelectedConnectionTypes(),
+        providers: getSelectedProviders(),
+        installation: installCheckbox.checked,
+        age: ageInput.value.trim(),
+        showAllAges: showAllAgesCheckbox.checked,
+        sort: selectedSort,
+    };
+
+    try {
+        const resp = await fetch('/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offers, filters }) // <-- FIXED!
+        });
+        const data = await resp.json();
+  
+        if (resp.ok) {
+          await navigator.clipboard.writeText(data.share_url);
+          alert('Share link copied to clipboard!:\n' + data.share_url);
+        } else {
+          alert('Error creating share link: ' + data.error);
+        }
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+  });
 
 const searchBtn = document.getElementById('search-btn');
 
@@ -89,7 +98,7 @@ async function triggerSearch() {
     let buffer = '';
     let resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
-    // allOffers = [];
+    allOffers = [];
 
     while (true) {
         const { value, done } = await reader.read();
@@ -153,9 +162,9 @@ function updateShareUrlAndHistory() {
     document.getElementById('share_url').value = window.location.href;
 }
 
-function updateSummary() {
-    const providers = new Set(allOffers.map(o => o.provider));
-    const summary = `Found ${allOffers.length} offer${allOffers.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
+function updateSummary(data) {
+    const providers = new Set(data.map(o => o.provider));
+    const summary = `Found ${data.length} offer${data.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
     document.getElementById('offers-summary').textContent = summary;
 }
 
@@ -175,10 +184,6 @@ function updateResults(data) {
 
 // --- On page load: initialize filters, restore state from URL, set up events ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Show sample offers if no query params
-    if (!window.location.search) {
-        updateResults([sampleOffer, sampleOffer2]);
-    }
 
     // Prefill address fields from URL
     const street = getParam('street', '');
@@ -189,6 +194,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('house_number').value = houseNumber;
     document.getElementById('plz').value = plz;
     document.getElementById('city').value = city;
+
+    if (window.snapshotOffers && Array.isArray(window.snapshotOffers)) {
+        allOffers = window.snapshotOffers;
+
+        if (window.snapshotFilters) {
+            setFilterState(window.snapshotFilters);
+        }
+        
+        applyFiltersAndUpdateResults();
+        updateSummary && updateSummary();
+        // Optionally hide the loading spinner if present
+        const spinner = document.getElementById('loading-spinner');
+        if (spinner) spinner.style.display = 'none';
+        return; // Don't auto-trigger search if snapshot is loaded
+    }
 
     // If all address fields are present, trigger search
     if (street && houseNumber && plz && city) {
@@ -258,6 +278,7 @@ export function applyFiltersAndUpdateResults() {
         filtered = filtered.slice().sort((a, b) => b.speed_mbps - a.speed_mbps);
     }
 
+    updateSummary(filtered);
     updateResults(filtered);
     updateShareUrlAndHistory();
 }

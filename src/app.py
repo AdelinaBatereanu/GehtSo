@@ -1,12 +1,12 @@
-from flask import Flask, request, jsonify, render_template, Response, stream_with_context
+from flask import Flask, request, jsonify, render_template, Response, stream_with_context, url_for, abort, render_template
 import compare_offers
 from urllib.parse import urlencode
 import pandas as pd
 import numpy as np
 from utils import make_api_safe
 import json
-import sys
 import asyncio
+from uuid import uuid4
 
 app = Flask(__name__)
 
@@ -130,6 +130,29 @@ def get_offers():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+snapshots = {}
+
+@app.route("/share", methods=["POST"])
+def create_share():
+    payload = request.get_json()
+    offers = payload.get('offers')
+    filters = payload.get('filters', {})
+    if not offers:
+        return jsonify({'error': 'No offers provided'}), 400
+    snapshot_id = str(uuid4())
+    snapshots[snapshot_id] = {"offers": offers, "filters": filters}
+    share_url = url_for('view_share', snapshot_id=snapshot_id, _external=True)
+    return jsonify({'share_url': share_url}), 201
+
+@app.route("/share/<snapshot_id>")
+def view_share(snapshot_id):
+    snapshot = snapshots.get(snapshot_id)
+    if not snapshot:
+        return abort(404, description="Page not found")
+    offers = snapshot.get("offers", [])
+    filters = snapshot.get("filters", {})
+    return render_template("index.html", offers=offers, filters=filters, snapshot_id=snapshot_id)
 
 if __name__ == "__main__":
     app.run(debug=True)

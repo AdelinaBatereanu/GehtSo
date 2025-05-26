@@ -131,3 +131,63 @@ export function initFilters({ getParam, applyFiltersAndUpdateResults }) {
     });
 
 }
+
+export function setFilterState(f) {
+    // Speed (button group)
+    if (f.speed !== undefined) {
+        selectedSpeed = f.speed;
+        speedButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-speed') == f.speed);
+        });
+    }
+    // TV (button group)
+    if (f.tv !== undefined) {
+        selectedTv = f.tv;
+        tvButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tv') == f.tv);
+        });
+    }
+    // Data limit (button group)
+    if (f.limit !== undefined) {
+        selectedLimit = f.limit;
+        limitButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-limit') == f.limit);
+        });
+    }
+    // Contract duration (button group)
+    if (f.duration !== undefined) {
+        selectedMaxDuration = f.duration;
+        durationButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-duration') == f.duration);
+        });
+    }
+    // Connection types (checkboxes)
+    if (Array.isArray(f.connection_types)) {
+        connectionTypeCheckboxes.forEach(cb => {
+            cb.checked = f.connection_types.includes(cb.value);
+        });
+    }
+    // Providers (checkboxes)
+    if (Array.isArray(f.providers)) {
+        providerCheckboxes.forEach(cb => {
+            cb.checked = f.providers.includes(cb.value);
+        });
+    }
+    // Installation included (checkbox)
+    if (typeof f.installation !== "undefined") {
+        installCheckbox.checked = !!f.installation;
+    }
+    // Age input
+    if (f.age !== undefined) {
+        ageInput.value = f.age;
+    }
+    // Show all ages (checkbox)
+    if (typeof f.showAllAges !== "undefined") {
+        showAllAgesCheckbox.checked = !!f.showAllAges;
+    }
+    // Sort select
+    if (f.sort !== undefined) {
+        selectedSort = f.sort;
+        sortBySelect.value = f.sort;
+    }
+}
