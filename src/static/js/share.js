@@ -1,72 +1,60 @@
-export function setupShare({
-    getOffers,
-    getFilters
-} = {}) {
-    document.querySelectorAll('.share-link-btn').forEach(shareBtn => {
-        shareBtn.addEventListener('click', async () => {
-            const offers = typeof getOffers === 'function' ? getOffers() : [];
-            const filters = typeof getFilters === 'function' ? getFilters() : {};
+let lastShareUrl = null;
 
-            try {
-                const resp = await fetch('/share', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ offers, filters })
-                });
-                const data = await resp.json();
-
-                if (resp.ok) {
-                    await navigator.clipboard.writeText(data.share_url);
-                    const textSpan = shareBtn.querySelector('.share-link-text');
-                    if (textSpan) {
-                        textSpan.textContent = "Copied!";
-                        setTimeout(() => {
-                            textSpan.textContent = "Copy share link";
-                        }, 1200);
+export function setupShare({ getOffers, getFilters } = {}) {
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            // Only generate the share URL if we haven't already
+            if (!lastShareUrl) {
+                const offers = typeof getOffers === 'function' ? getOffers() : [];
+                const filters = typeof getFilters === 'function' ? getFilters() : {};
+                try {
+                    const resp = await fetch('/share', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ offers, filters })
+                    });
+                    const data = await resp.json();
+                    if (resp.ok) {
+                        lastShareUrl = data.share_url;
+                    } else {
+                        alert('Error creating share link: ' + data.error);
+                        return;
                     }
-                } else {
-                    alert('Error creating share link: ' + data.error);
+                } catch (err) {
+                    alert('Network error: ' + err);
+                    return;
                 }
-            } catch (err) {
-                alert('Network error: ' + err);
+            }
+
+            // Now handle the platform-specific sharing
+            const platform = btn.getAttribute('data-platform');
+            const url = encodeURIComponent(lastShareUrl);
+            let shareWindowUrl = '';
+            if (platform === 'whatsapp') {
+                shareWindowUrl = `https://wa.me/?text=${url}`;
+            } else if (platform === 'telegram') {
+                shareWindowUrl = `https://t.me/share/url?url=${url}`;
+            } else if (platform === 'messenger') {
+                shareWindowUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            } else if (platform === 'email') {
+                shareWindowUrl = `mailto:?subject=Check%20out%20these%20internet%20offers&body=${url}`;
+            } else if (platform === 'copy') {
+                await navigator.clipboard.writeText(lastShareUrl);
+                btn.querySelector('img').alt = "Copied!";
+                btn.classList.add('text-success');
+                setTimeout(() => {
+                    btn.querySelector('img').alt = "Copy link";
+                    btn.classList.remove('text-success');
+                }, 1200);
+                return;
+            }
+            if (shareWindowUrl) {
+                window.open(shareWindowUrl, '_blank', 'noopener,noreferrer');
             }
         });
     });
 }
 
-// // // --- Share button functionality ---
-// document.getElementById('share-btn').addEventListener('click', async () => {
-
-//     const offers = allOffers;
-
-//     const filters = {
-//         speed: selectedSpeed,
-//         limit: selectedLimit,
-//         duration: selectedMaxDuration,
-//         tv: selectedTv,
-//         connection_types: getSelectedConnectionTypes(),
-//         providers: getSelectedProviders(),
-//         installation: installCheckbox.checked,
-//         age: ageInput.value.trim(),
-//         showAllAges: showAllAgesCheckbox.checked,
-//         sort: selectedSort,
-//     };
-// // Ensure filters are properly formatted for JSON
-//     try {
-//         const resp = await fetch('/share', {
-//           method: 'POST',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify({ offers, filters })
-//         });
-//         const data = await resp.json();
-  
-//         if (resp.ok) {
-//           await navigator.clipboard.writeText(data.share_url);
-//           alert('Share link copied to clipboard!:\n' + data.share_url);
-//         } else {
-//           alert('Error creating share link: ' + data.error);
-//         }
-//       } catch (err) {
-//         alert('Network error: ' + err);
-//       }
-//   });
+export function resetShareUrl() {
+    lastShareUrl = null;
+}

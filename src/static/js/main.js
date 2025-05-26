@@ -12,7 +12,7 @@ import {
     initFilters,
 } from './filters.js';
 
-import { setupShare } from './share.js';
+import { setupShare, resetShareUrl } from './share.js';
 import { createCard } from './card.js';
 import { setFilterState } from './filters.js';
 
@@ -58,6 +58,8 @@ async function triggerSearch() {
     let resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
     allOffers = [];
+    // Generate share URL (each time the search is triggered)
+    resetShareUrl();
 
     // Handle streaming response
     while (true) {
@@ -199,6 +201,8 @@ function getParam(name, defaultValue) {
 
 // --- Apply all filters and update results ---
 export function applyFiltersAndUpdateResults() {
+    // Generate share URL each time filters are applied
+    resetShareUrl();
     let filtered = allOffers;
 
     // Speed filter
