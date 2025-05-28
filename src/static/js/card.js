@@ -13,8 +13,8 @@ const col = document.createElement('div');
 
         // Card hover effect
         col.addEventListener('mouseenter', () => {
-            col.querySelector('.card').style.borderColor = '#A8A8A9';
-            col.querySelector('.card').style.boxShadow = '0 0 0 0.2px #A8A8A9';
+            col.querySelector('.card').style.borderColor = '#4927E0';
+            col.querySelector('.card').style.boxShadow = '0 0 0 2px #A8A8A9';
         });
         col.addEventListener('mouseleave', () => {
             col.querySelector('.card').style.borderColor = '';
@@ -108,7 +108,8 @@ const col = document.createElement('div');
             if (expanded) {
                 card.style.transition = 'all 0.2s';
                 detailsDiv = document.createElement('div');
-                detailsDiv.className = 'mt-2 small border-top pt-2';
+                detailsDiv.className = 'mt-2 small pt-2';
+                detailsDiv.style.borderTop = '0.5px solid #6c757d';
                 detailsDiv.style.fontSize = '0.92em';
                 // set DSL connection type to "DSL" if it is lowercase
                 let connectionType = offer.connection_type;

@@ -31,6 +31,7 @@ async function triggerSearch() {
     const plzInput = document.getElementById('plz');
     const cityInput = document.getElementById('city');
     const errorDiv = document.getElementById('address-error');
+    const ageInput = document.getElementById('age_input');
 
     // Validate address
     if (
@@ -42,10 +43,23 @@ async function triggerSearch() {
         // Show error above PLZ
         errorDiv.textContent = "Please fill in all address fields.";
         errorDiv.classList.remove('d-none');
+        document.getElementById('loading-spinner').classList.add('d-none');
         return;
     } else {
         // Hide error if present
         errorDiv.classList.add('d-none');
+    }
+
+    if (ageInput && ageInput.value.trim() !== "") {
+        const ageValue = Number(ageInput.value.trim());
+        if (isNaN(ageValue) || ageValue <= 0) {
+            errorDiv.textContent = "Please enter a valid age";
+            errorDiv.classList.remove('d-none');
+            document.getElementById('loading-spinner').classList.add('d-none');
+            ageInput.focus();
+            document.getElementById('loading-spinner').classList.add('d-none');
+            return;
+        }
     }
 
     // Show main content
@@ -166,6 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('plz').value = plz;
     document.getElementById('city').value = city;
 
+
+    // Search button event
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', triggerSearch);
+    }
+
+    // Restore filter state from URL and load snapshot if available
     if (window.snapshotOffers && Array.isArray(window.snapshotOffers)) {
         document.getElementById('main-content').classList.remove('d-none');
 
@@ -186,12 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // If all address fields are present, trigger search
     if (street && houseNumber && plz && city) {
         triggerSearch();
-    }
-
-    // Search button event
-    const searchBtn = document.getElementById('search-btn');
-    if (searchBtn) {
-        searchBtn.addEventListener('click', triggerSearch);
     }
 
     // Create share URL and set up sharing buttons
