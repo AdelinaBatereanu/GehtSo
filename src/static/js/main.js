@@ -167,6 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('city').value = city;
 
     if (window.snapshotOffers && Array.isArray(window.snapshotOffers)) {
+        document.getElementById('main-content').classList.remove('d-none');
+
         allOffers = window.snapshotOffers;
 
         if (window.snapshotFilters) {

@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, render_template, Response, stream_with_context, url_for, abort, render_template
+from flask import Flask, request, jsonify, render_template, Response, stream_with_context, url_for, abort, render_template, send_from_directory
 import json
 import asyncio
 from uuid import uuid4
 
-from utils import make_api_safe, str2bool
+from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions
 import compare_offers
 
 app = Flask(__name__)
@@ -104,6 +104,30 @@ def view_share(snapshot_id):
     offers = snapshot.get("offers", [])
     filters = snapshot.get("filters", {})
     return render_template("index.html", offers=offers, filters=filters, snapshot_id=snapshot_id)
+
+"""Endpoint to autocomplete postal codes and street names"""
+@app.route("/autocomplete")
+def autocomplete_api():
+    # --- Validate query parameters ---
+    q = request.args.get("q", "").strip()
+    field = request.args.get("field", "")
+    if not q or field not in ("plz", "street"):
+        return jsonify([]), 400
+    # --- Fetch suggestions based on the field ---
+    if field == "plz":
+        suggestions = fetch_plz_suggestions(q)
+    else:  # field == "street"
+        city = request.args.get("city", "").strip()
+        if not city:
+            return jsonify([]), 400
+        suggestions = fetch_street_suggestions(q, city)
+
+    return jsonify(suggestions)
+
+"""Endpoint to render an autocomplete page (temporary)"""
+@app.route("/autocomplete_page")
+def autocomplete_page():
+    return render_template("components/autocomplete.html")
 
 if __name__ == "__main__":
     # Run the Flask app
