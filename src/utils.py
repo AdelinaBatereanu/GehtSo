@@ -2,7 +2,6 @@ import unicodedata
 from urllib.parse import quote_plus
 import requests
 
-
 # Encode a string to be safe for API usage
 def make_api_safe(string):
     normalized = unicodedata.normalize('NFKD', string)

@@ -34,8 +34,9 @@
                         <form id="address-form">
                             <!-- PLZ and City -->
                             <div class="row g-2">
-                                <div class="col-md-6">
-                                    <input class="form-control" type="text" id="plz" name="plz" placeholder="PLZ">
+                                <div class="col-md-6 position-relative">
+                                    <input class="form-control" type="text" id="plz" name="plz" placeholder="PLZ" autocomplete="off">
+                                    <ul id="plz-suggestions" class="suggestions"></ul>
                                 </div>
                                 <div class="col-md-6">
                                     <input class="form-control" type="text" id="city" name="city" placeholder="City">
@@ -43,8 +44,9 @@
                             </div>
                             <!-- Street and House Number -->
                             <div class="row g-2 mt-2">
-                                <div class="col-md-8">
-                                    <input class="form-control" type="text" id="street" name="street" placeholder="Street">
+                                <div class="col-md-8 position-relative">
+                                    <input class="form-control" type="text" id="street" name="street" placeholder="Street" autocomplete="off">
+                                    <ul id="street-suggestions" class="suggestions"></ul>
                                 </div>
                                 <div class="col-md-4">
                                     <input class="form-control" type="text" id="house_number" name="house_number" placeholder="Nr.">
@@ -56,6 +58,12 @@
                                     <input class="form-control" type="number" id="age_input" min="0" placeholder="Age (optional)">
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
+                                    <span tabindex="0" class="me-2" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                          title="Some offers are only available for people under a certain age. By entering your age you ensure that you only see the offers available to you.">
+                                          <span class="custom-question-circle">
+                                            <span class="qm-small">?</span>
+                                          </span>
+                                    </span>
                                     <input type="checkbox" id="show_all_ages" class="form-check-input me-2" checked>
                                     <label class="form-check-label" for="show_all_ages">Show me all offers</label>
                                 </div>
@@ -69,8 +77,8 @@
                             <!-- Error message -->
                             <div class="row mt-1">
                                 <div class="col">
-                                    <div id="address-error-container" style="min-height:2em;">
-                                        <div id="address-error" class="text-danger mb-2 d-none small" role="alert"></div>
+                                    <div id="address-error-container" style="min-height:2em;" class="mb-2">
+                                        <div id="address-error" class="text-danger d-none small" role="alert"></div>
                                     </div>
                                 </div>
                             </div>
@@ -225,5 +233,17 @@
     </script>
     <!-- Main JS module -->
     <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
+    <!-- Tooltip for age form -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+          tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+          });
+        });
+    </script>
 </body>
 </html>

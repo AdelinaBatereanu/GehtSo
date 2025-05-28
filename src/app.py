@@ -124,11 +124,6 @@ def autocomplete_api():
 
     return jsonify(suggestions)
 
-"""Endpoint to render an autocomplete page (temporary)"""
-@app.route("/autocomplete_page")
-def autocomplete_page():
-    return render_template("components/autocomplete.html")
-
 if __name__ == "__main__":
     # Run the Flask app
     app.run(debug=True)
