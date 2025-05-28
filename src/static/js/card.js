@@ -5,6 +5,8 @@
  * @returns {HTMLElement} The card element containing the offer details.
  */
 
+import { getCostPopoverContent } from './cost_popover.js';
+
 export function createCard(offer) { 
 const col = document.createElement('div');
         col.className = 'col-12 mb-3';
@@ -195,7 +197,28 @@ const col = document.createElement('div');
         const priceLabel = document.createElement('div');
         priceLabel.className = 'small text-muted text-end';
         priceLabel.style.fontSize = '0.85em';
-        priceLabel.textContent = 'Mean cost per month';
+
+        // Label text
+        const labelText = document.createElement('span');
+        labelText.textContent = 'Mean cost per month';
+
+        // Question mark with popover
+        const questionMark = document.createElement('span');
+        questionMark.textContent = '?';
+        questionMark.tabIndex = 0;
+        questionMark.className = 'ms-1 encircled-qm';
+        questionMark.setAttribute('role', 'button');
+        questionMark.setAttribute('data-bs-toggle', 'popover');
+        questionMark.setAttribute('data-bs-trigger', 'hover focus');
+        questionMark.setAttribute('data-bs-placement', 'left');
+        questionMark.setAttribute('data-bs-html', 'true');
+
+        // Set offer-specific popover content
+        const popoverContent = getCostPopoverContent(offer);
+        questionMark.setAttribute('data-bs-content', popoverContent);
+
+        priceLabel.appendChild(labelText);
+        priceLabel.appendChild(questionMark);
         priceContainer.appendChild(priceLabel);
 
         // Spacer between price and after two years price
@@ -216,6 +239,13 @@ const col = document.createElement('div');
         row.appendChild(centerRight);
         card.appendChild(row);
         col.appendChild(card);
+
+        setTimeout(() => {
+            if (window.bootstrap && window.bootstrap.Popover) {
+                new window.bootstrap.Popover(questionMark);
+            }
+        }, 0);
+        
         // Return the complete card element
         return col;
     }

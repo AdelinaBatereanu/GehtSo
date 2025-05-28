@@ -57,7 +57,7 @@ ul.suggestions {
     justify-content: center;
     width: 1.2em;
     height: 1.2em;
-    border: 1px solid #92999e;
+    border: 1px solid #6c757d;
     border-radius: 100%;
     color: #92999e;
     background: transparent;
@@ -74,3 +74,26 @@ ul.suggestions {
     font-size: 0.9em;
     line-height: 1;
   }
+
+  .encircled-qm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.3em;
+    height: 1.3em;
+    border: 0.95px solid #6c757d;
+    border-radius: 50%;
+    color: #6c757d;
+    background: #fff;
+    font-size: 0.85em;
+    font-weight: medium;
+    margin-left: 0.3em;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s, color 0.2s;
+}
+.encircled-qm:hover, .encircled-qm:focus {
+    border-color: #495057;
+    color: #495057;
+    background: #f8f9fa;
+}

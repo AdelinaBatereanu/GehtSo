@@ -65,9 +65,11 @@ def fill_columns(df):
     """
     required_columns = [
         "cost_first_years_eur", "promo_price_eur", "cost_eur", "after_two_years_eur",
+        "voucher_fixed_eur", "voucher_percent",
         "installation_included", "speed_mbps", "max_age", "duration_months",
         "tv", "limit_from_gb", "connection_type", "provider", "name"
     ]
+    # Ensure all required columns are present
     for col in required_columns:
         if col not in df.columns:
             df[col] = None
