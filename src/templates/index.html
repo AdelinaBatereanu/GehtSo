@@ -8,11 +8,10 @@
     <!-- Custom styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-</head>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"></head>
 <body>
     <!-- Header -->
-    <header class="py-4 mb-4 bg-primary">
+    <header class="py-4 mb-4">
         <div class="container-fluid">
             <h1 class="text-white m-0 fs-2">C</h1>
         </div>
@@ -25,7 +24,7 @@
                 <!-- Left card: Prompt text -->
                 <div class="col-md-6 d-flex">
                     <div class="card flex-fill py-5 px-4 d-flex align-items-center justify-content-center">
-                        <h2 class="fw-medium text-left fs-2">Enter your address to start comparing</h2>
+                        <h2 class="fw-600 text-left fs-2">Enter your address to start comparing</h2>
                     </div>
                 </div>
                 <!-- Right card: Address form -->
@@ -58,7 +57,7 @@
                                     <input class="form-control" type="number" id="age_input" min="0" placeholder="Age (optional)">
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
-                                    <span tabindex="0" class="me-2" data-bs-toggle="tooltip"
+                                    <span tabindex="0" class="me-2" data-bs-toggle="tooltip" data-bs-placement="bottom"
                                           title="Some offers are only available for people under a certain age. By entering your age you ensure that you only see the offers available to you.">
                                           <span class="custom-question-circle">
                                             <span class="qm-small">?</span>
@@ -99,32 +98,32 @@
                         <div class="mb-3">
                             <label class="mb-1">Min. speed:</label>
                             <div id="speed-buttons" class="d-grid gap-1">
-                                <button type="button" data-speed="" class="btn btn-outline-primary">All</button>
-                                <button type="button" data-speed="20" class="btn btn-outline-primary">from 20 Mbps</button>
-                                <button type="button" data-speed="50" class="btn btn-outline-primary">from 50 Mbps</button>
-                                <button type="button" data-speed="100" class="btn btn-outline-primary">from 100 Mbps</button>
-                                <button type="button" data-speed="150" class="btn btn-outline-primary">from 150 Mbps</button>
-                                <button type="button" data-speed="250" class="btn btn-outline-primary">from 250 Mbps</button>
+                                <button type="button" data-speed="" class="btn btn-outline-dark">All</button>
+                                <button type="button" data-speed="20" class="btn btn-outline-dark">from 20 Mbps</button>
+                                <button type="button" data-speed="50" class="btn btn-outline-dark">from 50 Mbps</button>
+                                <button type="button" data-speed="100" class="btn btn-outline-dark">from 100 Mbps</button>
+                                <button type="button" data-speed="150" class="btn btn-outline-dark">from 150 Mbps</button>
+                                <button type="button" data-speed="250" class="btn btn-outline-dark">from 250 Mbps</button>
                             </div>
                         </div>
                         <!-- TV filter -->
                         <div class="mb-3">
                             <label class="mb-1">TV:</label>
                             <div id="tv-buttons" class="d-grid gap-1">
-                                <button type="button" data-tv="" class="btn btn-outline-secondary">All</button>
-                                <button type="button" data-tv="false" class="btn btn-outline-secondary">Only internet</button>
-                                <button type="button" data-tv="true" class="btn btn-outline-secondary">Internet and TV</button>
+                                <button type="button" data-tv="" class="btn btn-outline-dark">All</button>
+                                <button type="button" data-tv="false" class="btn btn-outline-dark">Only internet</button>
+                                <button type="button" data-tv="true" class="btn btn-outline-dark">Internet and TV</button>
                             </div>
                         </div>
                         <!-- Data limit filter -->
                         <div class="mb-3">
                             <label class="mb-1">Data limit:</label>
                             <div id="limit-buttons" class="d-grid gap-1">
-                                <button type="button" data-limit="" class="btn btn-outline-secondary">All</button>
-                                <button type="button" data-limit="100" class="btn btn-outline-secondary">Capped at 100 GB</button>
-                                <button type="button" data-limit="200" class="btn btn-outline-secondary">Capped at 200 GB</button>
-                                <button type="button" data-limit="300" class="btn btn-outline-secondary">Capped at 300 GB</button>
-                                <button type="button" data-limit="none" class="btn btn-outline-secondary">Unlimited</button>
+                                <button type="button" data-limit="" class="btn btn-outline-dark">All</button>
+                                <button type="button" data-limit="100" class="btn btn-outline-dark">Capped at 100 GB</button>
+                                <button type="button" data-limit="200" class="btn btn-outline-dark">Capped at 200 GB</button>
+                                <button type="button" data-limit="300" class="btn btn-outline-dark">Capped at 300 GB</button>
+                                <button type="button" data-limit="none" class="btn btn-outline-dark">Unlimited</button>
                             </div>
                         </div>
                         <!-- Connection type filter -->
@@ -149,9 +148,9 @@
                         <div class="mb-3">
                             <label class="mb-1">Min. contract duration:</label>
                             <div id="duration-buttons" class="d-grid gap-1">
-                                <button type="button" data-duration="" class="btn btn-outline-secondary">Any</button>
-                                <button type="button" data-duration="12" class="btn btn-outline-secondary">12 months</button>
-                                <button type="button" data-duration="24" class="btn btn-outline-secondary">24 months</button>
+                                <button type="button" data-duration="" class="btn btn-outline-dark">Any</button>
+                                <button type="button" data-duration="12" class="btn btn-outline-dark">12 months</button>
+                                <button type="button" data-duration="24" class="btn btn-outline-dark">24 months</button>
                             </div>
                         </div>
                         <!-- Provider filter -->
@@ -186,7 +185,7 @@
                             <label class="form-check-label" for="installation_included">Installation included</label>
                         </div>
                         <!-- Reset filters button -->
-                        <button id="reset-filters" type="button" class="btn btn-outline-secondary w-100 mt-2">Reset filters</button>
+                        <button id="reset-filters" type="button" class="btn btn-outline-dark w-100 mt-2">Reset filters</button>
                     </div>
                 </aside>
                 <!-- Main content: Offers/results -->
@@ -200,7 +199,8 @@
                                 </div>
                             </div>
                             <div id="offers-summary" class="text-secondary small"></div>
-                        </div>                        <div class="d-flex align-items-center">
+                        </div>                        
+                        <div class="d-flex align-items-center">
                             <label for="sort_by" class="me-2 mb-0">Sort by:</label>
                             <select id="sort_by" class="form-select form-select-sm w-auto">
                                 <option value="cost_first_years_eur" selected>Mean cost per month</option>

@@ -57,7 +57,7 @@ const col = document.createElement('div');
 
         // Product name
         const title = document.createElement('div');
-        title.className = 'fs-5 product-title fw-semibold mb-2';
+        title.className = 'fs-5 product-title fw-bold mb-2';
         title.textContent = offer.name;
         infoContainer.appendChild(title);
 

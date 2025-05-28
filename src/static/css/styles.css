@@ -1,99 +1,208 @@
+/* Montserrat font */
 body {
     font-family: 'Montserrat', Arial, sans-serif;
+    background: #212529;
+    color: #fff !important;
 }
 
-#filters {
-    font-size: 0.93em;
+header {
+    background: #d1a8dc !important;
+    color: #fff !important;
 }
-#filters .btn {
-    font-size: 0.95em;
-    padding-top: 0.3em;
-    padding-bottom: 0.3em;
-}
-
-#filters.card {
-    padding-left: 0.2rem;
-    padding-right: 0.5rem;
-}
-.share-btn {
-    color: #000;
-    text-decoration: underline !important;
-    text-underline-offset: 2px;
-    font-size: 0.95em;
+header h1 {
+    color: #fff !important;
 }
 
-.share-btn:hover{
-    color: #676767;
+/* basic card settings */
+.card,
+.card-body,
+.card-header,
+.card-footer {
+    background: #4927e0 !important;
+    color: #fff !important;
+    border: none;
 }
 
-/* Shared styling for both dropdowns */
+/* address forms */
+.form-control {
+    background: #dfdfdf !important;
+    color: #000 !important;
+}
+.form-control:focus {
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* address autocomplete suggestions */
 ul.suggestions {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    margin: 0;
+    margin-left: 5px;
+    margin-right: 5px;
     padding: 0;
     list-style: none;
     max-height: 200px;
     overflow-y: auto;
-    background: #fff;
+    background: #dfdfdf;
+    color: #000 !important;
     z-index: 1000;
     border: none;
-  }
-  
-  ul.suggestions li {
+}
+ul.suggestions li {
     padding: 0.5rem;
     cursor: pointer;
-  }
-  
-  ul.suggestions li:hover {
+}
+ul.suggestions li:hover {
     background-color: #f8f9fa;
-  }
+}
 
-  .custom-question-circle {
+/* search button (basic button style) */
+.btn-primary {
+    background: #d1a8dc !important;
+    color: #000 !important;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary.active {
+    background: #fa9a1c !important;
+    color: #000 !important;
+}
+
+/* form checkboxes */
+.form-check-input:checked {
+    background-color: #fa9a1c !important;
+    border-color: #fa9a1c !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.form-check-input {
+    background-color: #dfdfdf !important; /* default color */
+    border-color: #dfdfdf !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.form-check-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+}
+
+/* filters section */
+#filters.card {
+    background: #d1a8dc !important;
+    color: #000 !important;
+    padding-left: 0.2rem;
+    padding-right: 0.5rem;
+}
+#filters {
+    font-size: 0.93em;
+}
+/* filters buttons */
+#filters .btn {
+    font-size: 0.95em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+#filters .btn:hover,
+#filters .btn.active {
+    color: #d1a8dc !important;
+}
+
+#filters .form-check-input:checked {
+    background-color: #4927e0 !important;
+    border-color: #4927e0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* spinner */
+.spinner-border {
+    color: #fa9a1c !important; /* sets the color for the spinner */
+}
+
+/* sorting dropdown */
+#sort_by.form-select {
+    background-color: transparent !important;
+    color: #fff !important;
+    border: none !important;
+    font-size: 1em;
+}
+#sort_by.form-select {
+    border:none !important;
+    box-shadow: none !important;
+}
+
+/* share section */
+.share-btn {
+    color: #fa9a1c;
+    font-size: 0.95em;
+}
+.share-btn:hover {
+    color: #ff4d00;
+}
+
+/* results section */
+#results .card {
+    background: #dfdfdf !important;
+    color: #000 !important;
+}
+.product-title,
+.fs-5.fw-700 {
+    color: #4927e0 !important;
+}
+.text-danger,
+.text-danger * {
+    color: #ff4d00 !important;
+}
+
+/* question mark for tooltip (age) */
+.custom-question-circle,
+.encircled-qm {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    background: transparent !important;
+    cursor: pointer;
     width: 1.2em;
     height: 1.2em;
-    border: 1px solid #6c757d;
-    border-radius: 100%;
-    color: #92999e;
-    background: transparent;
-    cursor: pointer;
-    user-select: none;
-    transition: border-color 0.2s, color 0.2s;
+    border: 1px solid #dfdfdf !important;
+    border-radius: 50%;
+    color: #dfdfdf !important;
 }
-.custom-question-circle:hover, .custom-question-circle:focus {
-    border-color: #495057;
-    color: #495057;
+.custom-question-circle:hover,
+.custom-question-circle:focus {
+    border-color: #fa9a1c !important;
+    color: #fa9a1c !important;
 }
-
 .qm-small {
     font-size: 0.9em;
     line-height: 1;
-  }
+}
 
-  .encircled-qm {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* encircled question mark for popover (price) */
+.encircled-qm {
     width: 1.3em;
     height: 1.3em;
-    border: 0.95px solid #6c757d;
+    border: 0.95px solid;
+    border-color: #6c757d !important;
     border-radius: 50%;
-    color: #6c757d;
-    background: #fff;
+    color: #6c757d !important;
     font-size: 0.85em;
-    font-weight: medium;
+    font-weight: 500;
     margin-left: 0.3em;
-    cursor: pointer;
-    user-select: none;
-    transition: border-color 0.2s, color 0.2s;
 }
-.encircled-qm:hover, .encircled-qm:focus {
-    border-color: #495057;
-    color: #495057;
-    background: #f8f9fa;
+.encircled-qm:hover,
+.encircled-qm:focus {
+    border-color: #fa9a1c !important;
+    color: #fa9a1c !important;
+    background: transparent !important;
 }
+
+/* tooltips and popovers */
+.tooltip-inner,
+.popover {
+    background-color: #fa9a1c !important;
+    color: #000 !important;
+}
+
