@@ -1,1 +1,159 @@
-# CHECK69
+# GehtSo - Internet Plan Comparator
+
+GehtSo is a web application for comparing internet offers from multiple fictional providers in Germany. Enter your address to see and filter available plans, compare prices, speeds, contract durations, and more.
+
+## Introduction
+
+Before starting this project i have written less than 200 lines of code in Python. My goal was to complete the challenge using all available tools and (mostly) free services. I approached the task having no expectations on how far i would get into programming and finished it with a set of skills in full-stack development and a newfound passion.
+
+## Demo / Link
+
+Live Website: [https://gehtso.onrender.com](https://gehtso.onrender.com)
+
+## Setup
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/AdelinaBatereanu/GehtSo.git
+cd GehtSo
+```
+
+2. **Create and activate virtual environment:**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. **Install dependencies:**
+
+```bash
+pip install -r requirements.txt
+```
+
+4. **Set up environment variables:**
+
+- Create a file named `.env` in the project root directory.
+- Add your API keys and credentials for all providers to this file
+
+```python
+# Web Wunder
+WEBWUNDER_API_KEY = "your_key_here"
+# Verbyn Dich
+VERBYNDICH_API_KEY = "your_key_here"
+# Byte Me
+BYTEME_API_KEY = "your_key_here"
+# Servus Speed
+SERVUSSPEED_USERNAME = "your_username_here"
+SERVUSSPEED_PASSWORD = "your_password_here"
+# Ping Perfect
+PINGPERFECT_SIGNATURE_SECRET = "your_signature_here"
+PINGPERFECT_CLIENT_ID = "your_id_here"
+```
+
+5. **Run the app locally:**
+
+```bash
+cd src
+flask run
+```
+
+Or for production:
+
+```bash
+gunicorn app:app --chdir src --bind 0.0.0.0:8000
+```
+
+*Note:* Gunicorn is not available on Windows by default
+
+6. **Open in your browser:**
+
+[http://localhost:5000/](http://localhost:5000/)
+
+## Usage
+
+- Enter your address to fetch available offers.
+
+- Use filters on the left to narrow down results.
+
+- Click "Share" to generate a shareable link or send results via messaging platforms.
+
+## Features
+
+- Compare offers from ByteMe, Ping Perfect, Servus Speed, VerbynDich, and WebWunder (fictional internet providers created for the CHECK24 Coding Challenge)
+- Filter by speed, data limit, contract duration, TV, connection type, provider, installation included, and age
+- Sort results by price, speed, or cost after two years
+- Share results via WhatsApp, Messenger, Telegram, Email, or copy link
+- Address autocomplete for PLZ and street using OpenStreetMap Nominatim
+
+## Project Structure
+
+```plaintext
+GehtSo/
+├── src/
+│   ├── app.py               # Flask application entry point
+│   ├── compare_offers.py    # Offer aggregation and filtering logic
+│   ├── utils.py             # Utility functions (API-safe strings, autocomplete)
+│   ├── providers/           # Provider-specific fetchers
+│   │   ├── fetch_byteme.py
+│   │   ├── fetch_pingperfect.py
+│   │   ├── fetch_servusspeed.py
+│   │   ├── fetch_verbyndich.py
+│   │   └── fetch_webwunder.py
+│   ├── static/              # Static files (CSS, JS, images)
+│   └── templates/           # HTML templates
+├── requirements.txt         # List of Python dependencies
+├── Procfile                 # Heroku process file
+├── .env                     # Environment variables
+└── README.md                # Project documentation 
+```
+
+## Testing
+
+To test provider fetching logic individually (for developement and debugging) run:
+
+```bash
+python src/providers/fetch_byteme.py
+python src/providers/fetch_pingperfect.py
+# ...etc.
+```
+
+This will execute the code in each file’s `__main__` block, allowing you to check if fetching and parsing for that provider works as expected.
+
+## Limitations
+
+- I use only free hosting and services, so API calls may be slower or rate-limited.
+
+- On Render’s free plan, web services spin down after 15 minutes of inactivity; the first request can experience a cold start delay of up to 50 seconds
+
+- No caching or database backend—each run fetches fresh data.
+
+## Roadmap & Possible Improvements
+
+- Add Caching: Store API responses locally to reduce repeated calls.
+
+- Unit Tests: Add test suite with pytest to ensure code reliability.
+
+- Add address validation: Don't trigger search if the address doesn't exist or is invalid
+
+- Add session state to remember the user's last search
+
+- Responsive Design: Improve the web UI to ensure usability on tablets and mobile devices.
+
+## Why not OOP?
+
+I chose a procedural approach over object-oriented programming (OOP) to keep the codebase clear and maintainable:
+
+- Diverse APIs: Each provider uses a completely different method to access their API, returns different formats (CSV, JSON, SOAP), and uses inconsistent field names.
+
+- Specialized parsing: Some providers embed data in plain-text descriptions or have their own voucher systems. Handling these cases in standalone functions avoids the extra layers of class abstractions.
+
+- Focused output: The main objective is a single function that gathers and normalizes offers into a uniform structure. Procedural code lets me sequence each provider’s logic directly before producing the final result.
+
+## License
+
+MIT License
+
+___
+Made by Adelina Batereanu for the CHECK24 Coding Challenge.
