@@ -9,11 +9,11 @@ import pandas as pd
 pd.set_option('future.no_silent_downcasting', True)
 import numpy as np
 
-from fetch_byteme import get_offers as get_byteme_offers
-from fetch_pingperfect import get_offers as get_pingperfect_offers
-from fetch_servusspeed import get_offers as get_servusspeed_offers
-from fetch_verbyndich import get_offers as get_verbyndich_offers
-from fetch_webwunder import get_offers as get_webwunder_offers
+from providers.fetch_byteme import get_offers as get_byteme_offers
+from providers.fetch_pingperfect import get_offers as get_pingperfect_offers
+from providers.fetch_servusspeed import get_offers as get_servusspeed_offers
+from providers.fetch_verbyndich import get_offers as get_verbyndich_offers
+from providers.fetch_webwunder import get_offers as get_webwunder_offers
 
 MAX_RETRIES = 3
 RETRY_BACKOFF = 5  # seconds
@@ -158,5 +158,3 @@ if __name__ == "__main__":
         ignore_index=True
     )
     all_offers.to_csv("df_check.csv", index=False)
-
-#TODO: check requirements

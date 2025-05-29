@@ -21,4 +21,5 @@ venv/
 # API keys
 .env
 
+# csv of available offers for one addess (used for testing)
 df_check.csv

@@ -118,7 +118,7 @@ ul.suggestions li:hover {
 }
 /* spinner */
 .spinner-border {
-    color: #fa9a1c !important; /* sets the color for the spinner */
+    color: #fa9a1c !important;
 }
 
 /* sorting dropdown */

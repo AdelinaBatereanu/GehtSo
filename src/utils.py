@@ -82,6 +82,3 @@ def fetch_street_suggestions(query, city):
             seen.add(street)
             suggestions.append({"display": street})
     return suggestions
-
-if __name__ == "__main__":
-    pass
