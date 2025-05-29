@@ -62,9 +62,6 @@ async function triggerSearch() {
         }
     }
 
-    // Show main content
-    document.getElementById('main-content').classList.remove('d-none');
-
     // Build query params for API
     const params = new URLSearchParams();
     params.set('street', streetInput.value.trim());
@@ -77,14 +74,33 @@ async function triggerSearch() {
     const response = await fetch(apiUrl);
 
     // Check for errors
-    const reader = response.body.getReader();
-    let decoder = new TextDecoder();
-    let buffer = '';
-    let resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '';
-    allOffers = [];
-    // Generate share URL (each time the search is triggered)
-    resetShareUrl();
+    if (!response.ok) {
+        const errorDiv = document.getElementById('address-error');
+        let errorMsg = "An error occurred. Please try again.";
+        try {
+            const errorData = await response.json();
+            if (errorData && errorData.error) {
+                if (errorData.error === "Invalid address.") {
+                    errorMsg = "The address could not be found. Please check your input.";
+                } else {
+                    errorMsg = errorData.error;
+                }
+            }
+        } catch (e) {}
+        errorDiv.textContent = errorMsg;
+        errorDiv.classList.remove('d-none');
+        document.getElementById('loading-spinner').classList.add('d-none');
+        // Clear previous results
+        allOffers = [];
+        // Update summary and results
+        updateResults([]); 
+        // Generate share URL (each time the search is triggered)
+        resetShareUrl();
+        return;
+    }
+
+    // Show main content (only if response is ok)
+    document.getElementById('main-content').classList.remove('d-none');
 
     // Handle streaming response
     while (true) {

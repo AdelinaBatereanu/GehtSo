@@ -3,7 +3,7 @@ import json
 import asyncio
 from uuid import uuid4
 
-from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions
+from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions, validate_address
 import compare_offers
 
 app = Flask(__name__)
@@ -28,6 +28,10 @@ def get_offers():
         "plz": make_api_safe(plz),
         "city": make_api_safe(city)
     }
+
+     # Validate address
+    if not validate_address(street, house_number, plz, city):
+        return jsonify({"error": "Invalid address."}), 400
 
     async def generate_async():
         """Asynchronous generator to fetch and yield offers."""

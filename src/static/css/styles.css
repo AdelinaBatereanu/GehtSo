@@ -141,6 +141,12 @@ ul.suggestions li:hover {
 .share-btn:hover {
     color: #ff4d00;
 }
+.share-btn:active {
+    color: #4927e0 !important;
+}
+.copied-feedback {
+  color: #5c5c5c !important;
+}
 
 /* results section */
 #results .card {
@@ -204,5 +210,9 @@ ul.suggestions li:hover {
 .popover {
     background-color: #fa9a1c !important;
     color: #000 !important;
+}
+
+.popover {
+    min-width: 270px !important;
 }
 

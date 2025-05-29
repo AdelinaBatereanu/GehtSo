@@ -29,22 +29,23 @@ export function setupShare({ getOffers, getFilters } = {}) {
             // Now handle the platform-specific sharing
             const platform = btn.getAttribute('data-platform');
             const url = encodeURIComponent(lastShareUrl);
+            const messageText = "Look what I found! Check out these internet offers!";
+            const message = encodeURIComponent(`${messageText} ${lastShareUrl}`);
             let shareWindowUrl = '';
             if (platform === 'whatsapp') {
-                shareWindowUrl = `https://wa.me/?text=${url}`;
+                shareWindowUrl = `https://wa.me/?text=${message}`;
             } else if (platform === 'telegram') {
-                shareWindowUrl = `https://t.me/share/url?url=${url}`;
-            } else if (platform === 'messenger') {
-                shareWindowUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                shareWindowUrl = `https://t.me/share/url?url=${encodeURIComponent(lastShareUrl)}&text=${messageText}`;
             } else if (platform === 'email') {
-                shareWindowUrl = `mailto:?subject=Check%20out%20these%20internet%20offers&body=${url}`;
+                shareWindowUrl = `mailto:?subject=Internet%20offers%20comparison&body=${message}`;
             } else if (platform === 'copy') {
                 await navigator.clipboard.writeText(lastShareUrl);
-                btn.querySelector('img').alt = "Copied!";
-                btn.classList.add('text-success');
+                const originalText = btn.textContent;
+                btn.textContent = "Copied!";
+                btn.classList.add('copied-feedback');
                 setTimeout(() => {
-                    btn.querySelector('img').alt = "Copy link";
-                    btn.classList.remove('text-success');
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied-feedback');
                 }, 1200);
                 return;
             }

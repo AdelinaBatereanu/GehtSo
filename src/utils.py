@@ -82,3 +82,21 @@ def fetch_street_suggestions(query, city):
             seen.add(street)
             suggestions.append({"display": street})
     return suggestions
+
+# --- Address Validation ---
+def validate_address(street, house_number, plz, city):
+    """
+    Returns True if the address exists according to Nominatim, else False.
+    """
+    params = {
+        "street": f"{house_number} {street}",
+        "city": city,
+        "postalcode": plz,
+        "countrycodes": "de",
+        "format": "json",
+        "limit": 1
+    }
+    resp = requests.get(NOMINATIM_URL, params=params, headers=HEADERS)
+    resp.raise_for_status()
+    results = resp.json()
+    return bool(results)
