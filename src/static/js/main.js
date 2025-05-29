@@ -20,6 +20,7 @@ let allOffers = [];
 
 // --- Main search trigger ---
 async function triggerSearch() {
+    allOffers = [];
 
     // Show loading spinner
     document.getElementById('loading-spinner').classList.remove('d-none');
@@ -101,6 +102,10 @@ async function triggerSearch() {
 
     // Show main content (only if response is ok)
     document.getElementById('main-content').classList.remove('d-none');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
 
     // Handle streaming response
     while (true) {
@@ -186,16 +191,30 @@ function updateResults(data) {
 // --- On page load: initialize filters, restore state from URL, set up events ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Prefill address fields from URL
-    const street = getParam('street', '');
-    const houseNumber = getParam('house_number', '');
-    const plz = getParam('plz', '');
-    const city = getParam('city', '');
-    document.getElementById('street').value = street;
-    document.getElementById('house_number').value = houseNumber;
-    document.getElementById('plz').value = plz;
-    document.getElementById('city').value = city;
+    // Prefill address fields from URL ONLY if present
+    const street = getParam('street', null);
+    const houseNumber = getParam('house_number', null);
+    const plz = getParam('plz', null);
+    const city = getParam('city', null);
 
+    if (street !== null) document.getElementById('street').value = street;
+    if (houseNumber !== null) document.getElementById('house_number').value = houseNumber;
+    if (plz !== null) document.getElementById('plz').value = plz;
+    if (city !== null) document.getElementById('city').value = city;
+
+    // Clear other address fields when PLZ changes
+    const plzInput = document.getElementById('plz');
+    const streetInput = document.getElementById('street');
+    const houseNumberInput = document.getElementById('house_number');
+    const cityInput = document.getElementById('city');
+
+    if (plzInput && streetInput && houseNumberInput && cityInput) {
+        plzInput.addEventListener('input', () => {
+            streetInput.value = '';
+            houseNumberInput.value = '';
+            cityInput.value = '';
+        });
+    }
 
     // Search button event
     const searchBtn = document.getElementById('search-btn');

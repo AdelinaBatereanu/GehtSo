@@ -1,12 +1,17 @@
-from flask import Flask, request, jsonify, render_template, Response, stream_with_context, url_for, abort, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, Response, stream_with_context, url_for, abort, render_template, session
 import json
 import asyncio
 from uuid import uuid4
+
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions, validate_address
 import compare_offers
 
 app = Flask(__name__)
+app.secret_key = os.getenv("APP_SECRET_KEY")
 
 """Endpoint to get internet offers based on address"""
 @app.route("/offers")
@@ -32,6 +37,13 @@ def get_offers():
      # Validate address
     if not validate_address(street, house_number, plz, city):
         return jsonify({"error": "Invalid address."}), 400
+    
+    session['last_search'] = {
+        "street": street,
+        "house_number": house_number,
+        "plz": plz,
+        "city": city
+    }
 
     async def generate_async():
         """Asynchronous generator to fetch and yield offers."""
@@ -78,7 +90,8 @@ def get_offers():
 """Endpoint to render the main page"""
 @app.route("/")
 def index():
-    return render_template("index.html")
+    last_search = session.get('last_search', {})
+    return render_template("index.html", last_search=last_search)
 
 # Dictionary to store snapshots of offers for sharing
 snapshots = {}
