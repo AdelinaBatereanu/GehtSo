@@ -126,6 +126,8 @@ The project includes a `pytest.ini` file that adds `src` to the Python path, so 
 pytest
 ```
 
+*Note:* For `/share`, the tests will create files in the `snapshots` folder.
+
 To test provider fetching logic individually (for developement and debugging) run:
 
 ```bash
@@ -142,15 +144,19 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 - On Render’s free plan, web services spin down after 15 minutes of inactivity; the first request can experience a cold start delay of up to 50 seconds
 
-- No caching or database backend—each run fetches fresh data.
+- **No caching or database backend:** Each run fetches fresh data.
+
+- **Snapshots are stored as files:** Snapshots are saved as files in the `src/snapshots/` directory. This provides some persistence, but snapshots are not shared between deployments and may be lost if the server is redeployed or the filesystem is cleared.
 
 ## Roadmap & Possible Improvements
 
-- Add Caching: Store API responses locally to reduce repeated calls.
+- **Add Caching:** Store API responses locally to reduce repeated calls.
 
-- Frontend Tests: Add a test suite for the frontend to ensure UI components work as expected.
+- **Frontend Tests:** Add a test suite for the frontend to ensure UI components work as expected.
 
-- Responsive Design: Improve the web UI to ensure usability on tablets and mobile devices.
+- **Responsive Design:** Improve the web UI to ensure usability on tablets and mobile devices.
+
+- **Durable snapshot storage and lifecycle management:** Migrate from local file-based snapshot storage to a durable service (e.g., PostgreSQL or AWS S3) and implement snapshot lifecycle management (e.g., auto-delete snapshots older than 30 days).
 
 ## Why not OOP?
 

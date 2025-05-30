@@ -1,6 +1,8 @@
 import unicodedata
 from urllib.parse import quote_plus
 import requests
+import os
+import json
 
 # Encode a string to be safe for API usage
 def make_api_safe(string):
@@ -101,3 +103,19 @@ def validate_address(street, house_number, plz, city):
     resp.raise_for_status()
     results = resp.json()
     return bool(results)
+
+# --- Snapshot Management ---
+SNAPSHOT_DIR = os.path.join(os.path.dirname(__file__), "snapshots")
+os.makedirs(SNAPSHOT_DIR, exist_ok=True)
+# This directory is used to store snapshots of offers
+def save_snapshot(snapshot_id, data):
+    path = os.path.join(SNAPSHOT_DIR, f"{snapshot_id}.json")
+    with open(path, "w") as f:
+        json.dump(data, f)
+# Load a snapshot by its ID
+def load_snapshot(snapshot_id):
+    path = os.path.join(SNAPSHOT_DIR, f"{snapshot_id}.json")
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        return json.load(f)

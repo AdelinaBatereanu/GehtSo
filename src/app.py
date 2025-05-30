@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions, validate_address
+from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions, validate_address, save_snapshot, load_snapshot
 import compare_offers
 
 app = Flask(__name__)
@@ -93,9 +93,6 @@ def index():
     last_search = session.get('last_search', {})
     return render_template("index.html", last_search=last_search)
 
-# Dictionary to store snapshots of offers for sharing
-snapshots = {}
-
 """Endpoint to create a shareable link for offers"""
 @app.route("/share", methods=["POST"])
 def create_share():
@@ -105,8 +102,8 @@ def create_share():
     if not offers:
         return jsonify({'error': 'No offers provided'}), 400
     snapshot_id = str(uuid4())
-    # Store the offers and filters in the snapshots dictionary
-    snapshots[snapshot_id] = {"offers": offers, "filters": filters}
+    # Store the offers and filters in a snapshot
+    save_snapshot(snapshot_id, {"offers": offers, "filters": filters})    
     # Generate a shareable URL for the snapshot
     share_url = url_for('view_share', snapshot_id=snapshot_id, _external=True)
     return jsonify({'share_url': share_url}), 201
@@ -114,13 +111,15 @@ def create_share():
 """Endpoint to view shared offers"""
 @app.route("/share/<snapshot_id>")
 def view_share(snapshot_id):
-    snapshot = snapshots.get(snapshot_id)
+    # Load the snapshot by ID
+    snapshot = load_snapshot(snapshot_id)
     if not snapshot:
         return abort(404, description="Page not found")
     # Render the offers and filters from the snapshot
     offers = snapshot.get("offers", [])
     filters = snapshot.get("filters", {})
-    return render_template("index.html", offers=offers, filters=filters, snapshot_id=snapshot_id)
+    last_search = {}
+    return render_template("index.html", offers=offers, filters=filters, snapshot_id=snapshot_id, last_search=last_search)
 
 """Endpoint to autocomplete postal codes and street names"""
 @app.route("/autocomplete")
