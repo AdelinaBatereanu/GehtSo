@@ -160,6 +160,8 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 - **Durable snapshot storage and lifecycle management:** Migrate from local file-based snapshot storage to a durable service (e.g., PostgreSQL or AWS S3) and implement snapshot lifecycle management (e.g., auto-delete snapshots older than 30 days).
 
+- **Database-backed caching:** Replace the current file-based cache with a database-backed solution for more reliable, scalable, and shareable caching across server instances.
+
 ## 💭 Why not OOP?
 
 I chose a procedural approach over object-oriented programming (OOP) to keep the codebase clear and maintainable:

@@ -132,7 +132,7 @@ async function triggerSearch() {
     // Show main content (only if response is ok)
     document.getElementById('loading-placeholder').classList.add('d-none');
     showMainContent();
-    
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -153,6 +153,8 @@ async function triggerSearch() {
             try {
                 let offer = JSON.parse(offerStr);
                 allOffers.push(offer);
+                // Update summary and results
+                applyFiltersAndUpdateResults();
             } catch (e) {
                 // incomplete JSON, wait for more data
             }
@@ -283,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Restore filter state from URL and load snapshot if available
     if (window.snapshotOffers && Array.isArray(window.snapshotOffers)) {
-        document.getElementById('main-content').classList.remove('d-none');
+        showMainContent();
 
         allOffers = window.snapshotOffers;
 
