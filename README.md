@@ -2,15 +2,15 @@
 
 GehtSo is a web application for comparing internet offers from multiple fictional providers in Germany. Enter your address to see and filter available plans, compare prices, speeds, contract durations, and more.
 
-## Introduction
+## 👋 Introduction
 
 Before starting this project i have written less than 200 lines of code in Python. My goal was to complete the challenge using all available tools and (mostly) free services. I approached the task having no expectations on how far i would get into programming and finished it with a set of skills in full-stack development and a newfound passion.
 
-## Demo / Link
+## 🚀 Demo / Link
 
 Live Website: [https://gehtso.onrender.com](https://gehtso.onrender.com)
 
-## Setup
+## ⚙️ Setup
 
 1. **Clone the repository:**
 
@@ -75,7 +75,7 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 
 [http://localhost:5000/](http://localhost:5000/)
 
-## Usage
+## 📝 Usage
 
 - Enter your address to fetch available offers.
 
@@ -85,7 +85,7 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 
 - Change pages to see more results.
 
-## Features
+## 💫 Features
 
 - Compare offers from ByteMe, Ping Perfect, Servus Speed, VerbynDich, and WebWunder (fictional internet providers created for the CHECK24 Coding Challenge)
 - Filter by speed, data limit, contract duration, TV, connection type, provider, installation included, and age
@@ -97,7 +97,7 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 - Result caching: Internet offer results are cached for each address and provider. This speeds up repeated searches and reduces API calls. Cached results expire after 60 minutes
 - Pagination: Results are split into pages for easier browsing. Changing filter state returns you to page 1.
 
-## Project Structure
+## 🗂️ Project Structure
 
 ```plaintext
 GehtSo/
@@ -120,11 +120,11 @@ GehtSo/
 └── README.md                # Project documentation 
 ```
 
-## Testing
+## ✅ Testing
 
 To run the test suite, make sure you are in the project root.
   
-The project includes a `pytest.ini` file that adds `src` to the Python path, so you can simply run:
+The project includes a `pytest.ini` file that adds `src` to the Python path, so you can run:
 
 ```bash
 pytest
@@ -142,7 +142,7 @@ python src/providers/fetch_pingperfect.py
 
 This will execute the code in each file’s `__main__` block, allowing you to check if fetching and parsing for that provider works as expected.
 
-## Limitations
+## ⚠️ Limitations
 
 - I use only free hosting and services, so API calls may be slower or rate-limited. For a better experience run the programm locally.
 
@@ -152,7 +152,7 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 - **Snapshots are stored as files:** Snapshots are saved as files in the `src/snapshots/` directory. Snapshots are not shared between deployments and may be lost if the server is redeployed or the filesystem is cleared.
 
-## Roadmap & Possible Improvements
+## 🏁 Roadmap & Possible Improvements
 
 - **Frontend Tests:** Add a test suite for the frontend to ensure UI components work as expected.
 
@@ -160,7 +160,7 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 - **Durable snapshot storage and lifecycle management:** Migrate from local file-based snapshot storage to a durable service (e.g., PostgreSQL or AWS S3) and implement snapshot lifecycle management (e.g., auto-delete snapshots older than 30 days).
 
-## Why not OOP?
+## 💭 Why not OOP?
 
 I chose a procedural approach over object-oriented programming (OOP) to keep the codebase clear and maintainable:
 
@@ -170,9 +170,9 @@ I chose a procedural approach over object-oriented programming (OOP) to keep the
 
 - Focused output: The main objective is a single function that gathers and normalizes offers into a uniform structure. Procedural code lets me sequence each provider’s logic directly before producing the final result.
 
-## License
+## 📃 License
 
 MIT License
 
 ___
-Made by Adelina Batereanu for the CHECK24 Coding Challenge.
+✨ Made by Adelina Batereanu for the CHECK24 Coding Challenge.
