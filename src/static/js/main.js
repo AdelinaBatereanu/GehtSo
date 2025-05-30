@@ -21,10 +21,32 @@ let allOffers = [];
 let currentPage = 1;
 const pageSize = 10; // Offers per page
 
+// Show slogan, hide loading and main content
+function showSlogan() {
+    document.getElementById('slogan-placeholder').classList.remove('d-none');
+    document.getElementById('loading-placeholder').classList.add('d-none');
+    document.getElementById('main-content').classList.add('d-none');
+}
+
+// Show loading, hide slogan and main content
+function showLoading() {
+    document.getElementById('slogan-placeholder').classList.add('d-none');
+    document.getElementById('loading-placeholder').classList.remove('d-none');
+    document.getElementById('main-content').classList.add('d-none');
+}
+
+// Show main content, hide others
+function showMainContent() {
+    document.getElementById('slogan-placeholder').classList.add('d-none');
+    document.getElementById('loading-placeholder').classList.add('d-none');
+    document.getElementById('main-content').classList.remove('d-none');
+}
+
 // --- Main search trigger ---
 async function triggerSearch() {
     currentPage = 1; // Reset to first page on new search
     allOffers = [];
+    showLoading(); // Show loading state
 
     // Show loading spinner
     document.getElementById('loading-spinner').classList.remove('d-none');
@@ -49,6 +71,7 @@ async function triggerSearch() {
         errorDiv.textContent = "Please fill in all address fields.";
         errorDiv.classList.remove('d-none');
         document.getElementById('loading-spinner').classList.add('d-none');
+        showSlogan(); // Show slogan if address is invalid
         return;
     } else {
         // Hide error if present
@@ -63,6 +86,7 @@ async function triggerSearch() {
             document.getElementById('loading-spinner').classList.add('d-none');
             ageInput.focus();
             document.getElementById('loading-spinner').classList.add('d-none');
+            showSlogan(); // Show slogan if age is invalid
             return;
         }
     }
@@ -101,12 +125,14 @@ async function triggerSearch() {
         updateResults([]); 
         // Generate share URL (each time the search is triggered)
         resetShareUrl();
+        showSlogan(); // Show slogan if there was an error
         return;
     }
 
     // Show main content (only if response is ok)
-    document.getElementById('main-content').classList.remove('d-none');
-
+    document.getElementById('loading-placeholder').classList.add('d-none');
+    showMainContent();
+    
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -276,6 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // If all address fields are present, trigger search
     if (street && houseNumber && plz && city) {
         triggerSearch();
+    } else {
+        showSlogan(); // <--- Add this here
     }
 
     // Create share URL and set up sharing buttons

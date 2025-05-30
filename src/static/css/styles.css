@@ -23,6 +23,15 @@ header h1 {
     border: none;
 }
 
+.text-primary {
+    color: #4927e0 !important;
+}
+
+/* slogan */
+.slogan {
+    color: #fff !important;
+}
+
 /* address forms */
 .form-control {
     background: #dfdfdf !important;
