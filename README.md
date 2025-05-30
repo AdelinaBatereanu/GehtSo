@@ -37,6 +37,8 @@ pip install -r requirements.txt
 - Create a file named `.env` in the project root directory.
 - Add your API keys and credentials for all providers to this file
 
+*Note:* for your Flask App key you can use any random set of characters
+
 ```python
 # Web Wunder
 WEBWUNDER_API_KEY = "your_key_here"
@@ -50,6 +52,8 @@ SERVUSSPEED_PASSWORD = "your_password_here"
 # Ping Perfect
 PINGPERFECT_SIGNATURE_SECRET = "your_signature_here"
 PINGPERFECT_CLIENT_ID = "your_id_here"
+# Flask App
+APP_SECRET_KEY = "your_random_key_here"
 ```
 
 5. **Run the app locally:**
@@ -77,7 +81,7 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 
 - Use filters on the left to narrow down results.
 
-- Click "Share" to generate a shareable link or send results via messaging platforms.
+- Click "Share via:" to generate a shareable link or send results via messaging platforms.
 
 ## Features
 
@@ -86,6 +90,8 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 - Sort results by price, speed, or cost after two years
 - Share results via WhatsApp, Messenger, Telegram, Email, or copy link
 - Address autocomplete for PLZ and street using OpenStreetMap Nominatim
+- Address validation
+- Session state to remember user's last search
 
 ## Project Structure
 
@@ -103,6 +109,7 @@ GehtSo/
 │   │   └── fetch_webwunder.py
 │   ├── static/              # Static files (CSS, JS, images)
 │   └── templates/           # HTML templates
+├── tests/                   # Python tests
 ├── requirements.txt         # List of Python dependencies
 ├── Procfile                 # Heroku process file
 ├── .env                     # Environment variables
@@ -110,6 +117,14 @@ GehtSo/
 ```
 
 ## Testing
+
+To run the test suite, make sure you are in the project root.
+  
+The project includes a `pytest.ini` file that adds `src` to the Python path, so you can simply run:
+
+```bash
+pytest
+```
 
 To test provider fetching logic individually (for developement and debugging) run:
 
@@ -123,7 +138,7 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 ## Limitations
 
-- I use only free hosting and services, so API calls may be slower or rate-limited.
+- I use only free hosting and services, so API calls may be slower or rate-limited. For a better experience run the programm locally
 
 - On Render’s free plan, web services spin down after 15 minutes of inactivity; the first request can experience a cold start delay of up to 50 seconds
 
@@ -133,11 +148,7 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 - Add Caching: Store API responses locally to reduce repeated calls.
 
-- Unit Tests: Add test suite with pytest to ensure code reliability.
-
-- Add address validation: Don't trigger search if the address doesn't exist or is invalid
-
-- Add session state to remember the user's last search
+- Frontend Tests: Add a test suite for the frontend to ensure UI components work as expected.
 
 - Responsive Design: Improve the web UI to ensure usability on tablets and mobile devices.
 

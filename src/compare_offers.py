@@ -47,11 +47,11 @@ async def fetch_offers(address):
     """
     loop = asyncio.get_event_loop()
     tasks = [
-        loop.run_in_executor(None, safe_get_offers, get_byteme_offers, address, "ByteMe"),
         loop.run_in_executor(None, safe_get_offers, get_pingperfect_offers, address, "Ping Perfect"),
         loop.run_in_executor(None, safe_get_offers, get_servusspeed_offers, address, "Servus Speed"),
         loop.run_in_executor(None, safe_get_offers, get_verbyndich_offers, address, "VerbynDich"),
         loop.run_in_executor(None, safe_get_offers, get_webwunder_offers, address, "WebWunder"),
+        loop.run_in_executor(None, safe_get_offers, get_byteme_offers, address, "ByteMe"),
     ]
     return await asyncio.gather(*tasks)
 
@@ -152,9 +152,10 @@ if __name__ == "__main__":
         "plz": "10115",
         "city": "Berlin"
     }
-    df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder = asyncio.run(fetch_offers(address))   
+    df_verbyndich, df_byteme, df_pingperfect, df_servusspeed, df_webwunder = asyncio.run(fetch_offers(address))   
     all_offers = pd.concat(
         [df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder],
         ignore_index=True
     )
+    # Save DataFrame to CSV for checking
     all_offers.to_csv("df_check.csv", index=False)

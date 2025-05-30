@@ -24,6 +24,7 @@ function clearList(el) {
   }
   
 document.addEventListener('DOMContentLoaded', function() {
+  
   // --- PLZ field ---
   const plzInput = document.getElementById("plz");
   const plzList  = document.getElementById("plz-suggestions");
