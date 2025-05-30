@@ -83,6 +83,8 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 
 - Click "Share via:" to generate a shareable link or send results via messaging platforms.
 
+- Change pages to see more results.
+
 ## Features
 
 - Compare offers from ByteMe, Ping Perfect, Servus Speed, VerbynDich, and WebWunder (fictional internet providers created for the CHECK24 Coding Challenge)
@@ -92,6 +94,8 @@ gunicorn app:app --chdir src --bind 0.0.0.0:8000
 - Address autocomplete for PLZ and street using OpenStreetMap Nominatim
 - Address validation
 - Session state to remember user's last search
+- Result caching: Internet offer results are cached for each address and provider. This speeds up repeated searches and reduces API calls. Cached results expire after 60 minutes
+- Pagination: Results are split into pages for easier browsing. Changing filter state returns you to page 1.
 
 ## Project Structure
 
@@ -140,17 +144,15 @@ This will execute the code in each file’s `__main__` block, allowing you to ch
 
 ## Limitations
 
-- I use only free hosting and services, so API calls may be slower or rate-limited. For a better experience run the programm locally
+- I use only free hosting and services, so API calls may be slower or rate-limited. For a better experience run the programm locally.
 
-- On Render’s free plan, web services spin down after 15 minutes of inactivity; the first request can experience a cold start delay of up to 50 seconds
+- On Render’s free plan, web services spin down after 15 minutes of inactivity; the first request can experience a cold start delay of 50 seconds or more.
 
-- **No caching or database backend:** Each run fetches fresh data.
+- **Cache is server-local:** Cached results are stored on the server's filesystem in the `cache/` directory. The cache is not shared between server instances and the cache may be lost if the server restarts.
 
-- **Snapshots are stored as files:** Snapshots are saved as files in the `src/snapshots/` directory. This provides some persistence, but snapshots are not shared between deployments and may be lost if the server is redeployed or the filesystem is cleared.
+- **Snapshots are stored as files:** Snapshots are saved as files in the `src/snapshots/` directory. Snapshots are not shared between deployments and may be lost if the server is redeployed or the filesystem is cleared.
 
 ## Roadmap & Possible Improvements
-
-- **Add Caching:** Store API responses locally to reduce repeated calls.
 
 - **Frontend Tests:** Add a test suite for the frontend to ensure UI components work as expected.
 

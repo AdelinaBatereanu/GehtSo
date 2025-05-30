@@ -149,6 +149,9 @@ ul.suggestions li:hover {
 }
 
 /* results section */
+#results-wrapper {
+    min-height: 1180px;
+}
 #results .card {
     background: #dfdfdf !important;
     color: #000 !important;
@@ -214,5 +217,22 @@ ul.suggestions li:hover {
 
 .popover {
     min-width: 270px !important;
+}
+
+/* pagination bar */
+.pagination .page-link {
+    color: #212529; 
+    background-color: #dfdfdf;
+    border: 1px solid #6c757d;
+}
+.pagination .page-item.active .page-link {
+    color: #d1a8dc;
+    background-color: #4927e0;
+    border-color: #4927e0;
+}
+.pagination .page-link:hover {
+    color: #212529;
+    background-color: #d1a8dc;
+    border-color: #6c757d;
 }
 

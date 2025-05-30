@@ -17,9 +17,13 @@ import { createCard } from './card.js';
 import { setFilterState } from './filters.js';
 
 let allOffers = [];
+// Initialize current page and page size for pagination
+let currentPage = 1;
+const pageSize = 10; // Offers per page
 
 // --- Main search trigger ---
 async function triggerSearch() {
+    currentPage = 1; // Reset to first page on new search
     allOffers = [];
 
     // Show loading spinner
@@ -123,17 +127,15 @@ async function triggerSearch() {
             try {
                 let offer = JSON.parse(offerStr);
                 allOffers.push(offer);
-                // Always show sorted offers
-                applyFiltersAndUpdateResults();
-                // Update results immediately
-                updateSummary();
             } catch (e) {
                 // incomplete JSON, wait for more data
             }
         }
     }
-    document.getElementById('loading-spinner').classList.add('d-none');}
-
+    document.getElementById('loading-spinner').classList.add('d-none');
+    // Always show sorted offers and update summary
+    applyFiltersAndUpdateResults();
+}
 // --- Update browser history ---
 function updateHistory() {
     // Get current filter values
@@ -177,15 +179,46 @@ function updateSummary(data) {
     document.getElementById('offers-summary').textContent = summary;
 }
 
+// --- Render pagination ---
+function renderPagination(totalOffers, pageSize) {
+    const totalPages = Math.ceil(totalOffers / pageSize);
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+        const btn = document.createElement('button');
+        btn.className = 'page-link';
+        btn.textContent = i;
+        btn.addEventListener('click', () => {
+            currentPage = i;
+            applyFiltersAndUpdateResults();
+            document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' });
+        });
+        li.appendChild(btn);
+        pagination.appendChild(li);
+    }
+}
+
 // --- Render offer cards in results area ---
 function updateResults(data) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
-    data.forEach(offer => {
+    // Pagination logic
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageOffers = data.slice(start, end);
+
+    pageOffers.forEach(offer => {
         const cardElement = createCard(offer);
         resultsDiv.appendChild(cardElement);
     });
+
+    renderPagination(data.length, pageSize);
 }
 
 // --- On page load: initialize filters, restore state from URL, set up events ---
@@ -323,6 +356,11 @@ export function applyFiltersAndUpdateResults() {
         filtered = filtered.slice().sort((a, b) => a.after_two_years_eur - b.after_two_years_eur);
     } else if (selectedSort === "speed_mbps") {
         filtered = filtered.slice().sort((a, b) => b.speed_mbps - a.speed_mbps);
+    }
+    
+    // Only reset if the current page is out of range (e.g. after filtering reduces results)
+    if ((currentPage - 1) * pageSize >= filtered.length) {
+        currentPage = 1;
     }
 
     updateSummary(filtered);
