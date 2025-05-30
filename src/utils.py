@@ -105,7 +105,9 @@ def validate_address(street, house_number, plz, city):
     return bool(results)
 
 # --- Snapshot Management ---
+# Create a directory to store snapshots if it doesn't exist
 SNAPSHOT_DIR = os.path.join(os.path.dirname(__file__), "snapshots")
+# Ensure the snapshot directory exists
 os.makedirs(SNAPSHOT_DIR, exist_ok=True)
 # This directory is used to store snapshots of offers
 def save_snapshot(snapshot_id, data):

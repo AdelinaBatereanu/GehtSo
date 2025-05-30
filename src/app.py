@@ -8,6 +8,7 @@ import os
 load_dotenv()
 
 from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions, validate_address, save_snapshot, load_snapshot
+from cache_utils import get_provider_data
 import compare_offers
 
 app = Flask(__name__)
@@ -50,11 +51,41 @@ def get_offers():
         # Create a new event loop for the async generator
         loop = asyncio.get_event_loop()
         tasks = [
-            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_byteme_offers, address, "ByteMe"),
-            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_pingperfect_offers, address, "Ping Perfect"),
-            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_servusspeed_offers, address, "Servus Speed"),
-            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_verbyndich_offers, address, "VerbynDich"),
-            loop.run_in_executor(None, compare_offers.safe_get_offers, compare_offers.get_webwunder_offers, address, "WebWunder"),
+            loop.run_in_executor(
+                None,
+                lambda: get_provider_data(
+                    "ByteMe", address,
+                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_byteme_offers, address, "ByteMe")
+                )
+            ),
+            loop.run_in_executor(
+                None,
+                lambda: get_provider_data(
+                    "Ping Perfect", address,
+                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_pingperfect_offers, address, "Ping Perfect")
+                )
+            ),
+            loop.run_in_executor(
+                None,
+                lambda: get_provider_data(
+                    "Servus Speed", address,
+                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_servusspeed_offers, address, "Servus Speed")
+                )
+            ),
+            loop.run_in_executor(
+                None,
+                lambda: get_provider_data(
+                    "VerbynDich", address,
+                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_verbyndich_offers, address, "VerbynDich")
+                )
+            ),
+            loop.run_in_executor(
+                None,
+                lambda: get_provider_data(
+                    "WebWunder", address,
+                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_webwunder_offers, address, "WebWunder")
+                )
+            ),
         ]
         # for each provider, create a task to fetch offers
         for coro in asyncio.as_completed(tasks):
