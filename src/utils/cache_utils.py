@@ -5,7 +5,7 @@ import hashlib
 import pandas as pd
 
 CACHE_DIR = 'cache'
-CACHE_TIME = 3600  
+CACHE_TIME = int(float(os.getenv("CACHE_TIME", "3600")))  # Default to 3600 seconds
 
 # Create cache directory if it doesn't exist
 def make_cache_dir():

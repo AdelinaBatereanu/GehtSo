@@ -1,0 +1,96 @@
+<!-- Filters -->
+<div id="filters" class="card p-3 w-100">
+    <h5 class="mb-3">Filters</h5>
+    <!-- Speed filter -->
+    <div class="mb-3">
+        <label class="mb-1">Min. speed:</label>
+        <div id="speed-buttons" class="d-grid gap-1">
+            <button type="button" data-speed="" class="btn btn-outline-dark">All</button>
+            <button type="button" data-speed="20" class="btn btn-outline-dark">from 20 Mbps</button>
+            <button type="button" data-speed="50" class="btn btn-outline-dark">from 50 Mbps</button>
+            <button type="button" data-speed="100" class="btn btn-outline-dark">from 100 Mbps</button>
+            <button type="button" data-speed="150" class="btn btn-outline-dark">from 150 Mbps</button>
+            <button type="button" data-speed="250" class="btn btn-outline-dark">from 250 Mbps</button>
+        </div>
+    </div>
+    <!-- TV filter -->
+    <div class="mb-3">
+        <label class="mb-1">TV:</label>
+        <div id="tv-buttons" class="d-grid gap-1">
+            <button type="button" data-tv="" class="btn btn-outline-dark">All</button>
+            <button type="button" data-tv="false" class="btn btn-outline-dark">Only internet</button>
+            <button type="button" data-tv="true" class="btn btn-outline-dark">Internet and TV</button>
+        </div>
+    </div>
+    <!-- Data limit filter -->
+    <div class="mb-3">
+        <label class="mb-1">Data limit:</label>
+        <div id="limit-buttons" class="d-grid gap-1">
+            <button type="button" data-limit="" class="btn btn-outline-dark">All</button>
+            <button type="button" data-limit="100" class="btn btn-outline-dark">Capped at 100 GB</button>
+            <button type="button" data-limit="200" class="btn btn-outline-dark">Capped at 200 GB</button>
+            <button type="button" data-limit="300" class="btn btn-outline-dark">Capped at 300 GB</button>
+            <button type="button" data-limit="none" class="btn btn-outline-dark">Unlimited</button>
+        </div>
+    </div>
+    <!-- Connection type filter -->
+    <div class="mb-3">
+        <label class="mb-1">Connection type:</label>
+        <div id="connection-type-checkboxes">
+            <div class="form-check mb-1">
+                <input type="checkbox" value="dsl" class="form-check-input connection-type" id="conn-dsl">
+                <label class="form-check-label" for="conn-dsl">DSL</label>
+            </div>
+            <div class="form-check mb-1">
+                <input type="checkbox" value="fiber" class="form-check-input connection-type" id="conn-fiber">
+                <label class="form-check-label" for="conn-fiber">Fiber</label>
+            </div>
+            <div class="form-check mb-1">
+                <input type="checkbox" value="cable" class="form-check-input connection-type" id="conn-cable">
+                <label class="form-check-label" for="conn-cable">Cable</label>
+            </div>
+        </div>
+    </div>
+    <!-- Contract duration filter -->
+    <div class="mb-3">
+        <label class="mb-1">Min. contract duration:</label>
+        <div id="duration-buttons" class="d-grid gap-1">
+            <button type="button" data-duration="" class="btn btn-outline-dark">Any</button>
+            <button type="button" data-duration="12" class="btn btn-outline-dark">12 months</button>
+            <button type="button" data-duration="24" class="btn btn-outline-dark">24 months</button>
+        </div>
+    </div>
+    <!-- Provider filter -->
+    <div class="mb-3">
+        <label class="mb-1">Provider:</label>
+        <div id="provider-checkboxes">
+            <div class="form-check mb-1">
+                <input type="checkbox" value="ByteMe" class="form-check-input provider" id="provider-ByteMe">
+                <label class="form-check-label" for="provider-ByteMe">ByteMe</label>
+            </div>
+            <div class="form-check mb-1">
+                <input type="checkbox" value="WebWunder" class="form-check-input provider" id="provider-WebWunder">
+                <label class="form-check-label" for="provider-WebWunder">WebWunder</label>
+            </div>
+            <div class="form-check mb-1">
+                <input type="checkbox" value="Ping Perfect" class="form-check-input provider" id="provider-PingPerfect">
+                <label class="form-check-label" for="provider-PingPerfect">Ping Perfect</label>
+            </div>
+            <div class="form-check mb-1">
+                <input type="checkbox" value="Servus Speed" class="form-check-input provider" id="provider-ServusSpeed">
+                <label class="form-check-label" for="provider-ServusSpeed">Servus Speed</label>
+            </div>
+            <div class="form-check mb-1">
+                <input type="checkbox" value="VerbynDich" class="form-check-input provider" id="provider-VerbynDich">
+                <label class="form-check-label" for="provider-VerbynDich">VerbynDich</label>
+            </div>
+        </div>
+    </div>
+    <!-- Installation included filter -->
+    <div class="form-check mb-3 text-start">
+        <input type="checkbox" id="installation_included" name="installation_included" class="form-check-input">
+        <label class="form-check-label" for="installation_included">Installation included</label>
+    </div>
+    <!-- Reset filters button -->
+    <button id="reset-filters" type="button" class="btn btn-outline-dark w-100 mt-2">Reset filters</button>
+</div>

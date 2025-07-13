@@ -10,234 +10,34 @@ import {
     getSelectedConnectionTypes,
     getSelectedProviders,
     initFilters,
+    setFilterState
 } from './filters.js';
 
-import { setupShare, resetShareUrl } from './share.js';
+import { resetShareUrl } from './share.js';
 import { createCard } from './card.js';
-import { setFilterState } from './filters.js';
+import { updateHistory } from './history.js';
+import { updateSummary } from './summary.js';
+import { renderPagination } from './pagination.js';
+import { setupShare } from './share.js';
+import { showMainContent, showSlogan } from './ui.js';
+import { triggerSearch } from './search.js';
 
-let allOffers = [];
-// Initialize current page and page size for pagination
-let currentPage = 1;
-const pageSize = 10; // Offers per page
+// Initialize page size for pagination
+export const pageSize = 10; // Offers per page
 
-// Show slogan, hide loading and main content
-function showSlogan() {
-    document.getElementById('slogan-placeholder').classList.remove('d-none');
-    document.getElementById('loading-placeholder').classList.add('d-none');
-    document.getElementById('main-content').classList.add('d-none');
-}
-
-// Show loading, hide slogan and main content
-function showLoading() {
-    document.getElementById('slogan-placeholder').classList.add('d-none');
-    document.getElementById('loading-placeholder').classList.remove('d-none');
-    document.getElementById('main-content').classList.add('d-none');
-}
-
-// Show main content, hide others
-function showMainContent() {
-    document.getElementById('slogan-placeholder').classList.add('d-none');
-    document.getElementById('loading-placeholder').classList.add('d-none');
-    document.getElementById('main-content').classList.remove('d-none');
-}
-
-// --- Main search trigger ---
-async function triggerSearch() {
-    currentPage = 1; // Reset to first page on new search
-    allOffers = [];
-    showLoading(); // Show loading state
-
-    // Show loading spinner
-    document.getElementById('loading-spinner').classList.remove('d-none');
-
-    console.log('Search triggered');
-    // Get address fields
-    const streetInput = document.getElementById('street');
-    const houseNumberInput = document.getElementById('house_number');
-    const plzInput = document.getElementById('plz');
-    const cityInput = document.getElementById('city');
-    const errorDiv = document.getElementById('address-error');
-    const ageInput = document.getElementById('age_input');
-
-    // Validate address
-    if (
-        !streetInput.value.trim() ||
-        !houseNumberInput.value.trim() ||
-        !plzInput.value.trim() ||
-        !cityInput.value.trim()
-    ) {
-        // Show error above PLZ
-        errorDiv.textContent = "Please fill in all address fields.";
-        errorDiv.classList.remove('d-none');
-        document.getElementById('loading-spinner').classList.add('d-none');
-        showSlogan(); // Show slogan if address is invalid
-        return;
-    } else {
-        // Hide error if present
-        errorDiv.classList.add('d-none');
-    }
-
-    if (ageInput && ageInput.value.trim() !== "") {
-        const ageValue = Number(ageInput.value.trim());
-        if (isNaN(ageValue) || ageValue <= 0) {
-            errorDiv.textContent = "Please enter a valid age";
-            errorDiv.classList.remove('d-none');
-            document.getElementById('loading-spinner').classList.add('d-none');
-            ageInput.focus();
-            document.getElementById('loading-spinner').classList.add('d-none');
-            showSlogan(); // Show slogan if age is invalid
-            return;
-        }
-    }
-
-    // Build query params for API
-    const params = new URLSearchParams();
-    params.set('street', streetInput.value.trim());
-    params.set('house_number', houseNumberInput.value.trim());
-    params.set('plz', plzInput.value.trim());
-    params.set('city', cityInput.value.trim());
-
-    // Fetch offers from backend
-    const apiUrl = `/offers?${params.toString()}`;
-    const response = await fetch(apiUrl);
-
-    // Check for errors
-    if (!response.ok) {
-        const errorDiv = document.getElementById('address-error');
-        let errorMsg = "An error occurred. Please try again.";
-        try {
-            const errorData = await response.json();
-            if (errorData && errorData.error) {
-                if (errorData.error === "Invalid address.") {
-                    errorMsg = "The address could not be found. Please check your input.";
-                } else {
-                    errorMsg = errorData.error;
-                }
-            }
-        } catch (e) {}
-        errorDiv.textContent = errorMsg;
-        errorDiv.classList.remove('d-none');
-        document.getElementById('loading-spinner').classList.add('d-none');
-        // Clear previous results
-        allOffers = [];
-        // Update summary and results
-        updateResults([]); 
-        // Generate share URL (each time the search is triggered)
-        resetShareUrl();
-        showSlogan(); // Show slogan if there was an error
-        return;
-    }
-
-    // Show main content (only if response is ok)
-    document.getElementById('loading-placeholder').classList.add('d-none');
-    showMainContent();
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    // Handle streaming response
-    while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        // Split buffer into complete JSON objects
-        let offers = buffer.split('\n');
-        buffer = offers.pop(); // last chunk may be incomplete
-
-        // Process each complete offer
-        for (let offerStr of offers) {
-            if (!offerStr.trim()) continue;
-            try {
-                let offer = JSON.parse(offerStr);
-                allOffers.push(offer);
-                // Update summary and results
-                applyFiltersAndUpdateResults();
-            } catch (e) {
-                // incomplete JSON, wait for more data
-            }
-        }
-    }
-    document.getElementById('loading-spinner').classList.add('d-none');
-    // Always show sorted offers and update summary
-    applyFiltersAndUpdateResults();
-}
-// --- Update browser history ---
-function updateHistory() {
-    // Get current filter values
-    const street = document.getElementById('street').value.trim();
-    const houseNumber = document.getElementById('house_number').value.trim();
-    const plz = document.getElementById('plz').value.trim();
-    const city = document.getElementById('city').value.trim();
-
-    const params = new URLSearchParams();
-    if (street) params.set('street', street);
-    if (houseNumber) params.set('house_number', houseNumber);
-    if (plz) params.set('plz', plz);
-    if (city) params.set('city', city);
-
-    if (selectedSpeed) params.set('speed', selectedSpeed);
-    if (selectedLimit) params.set('limit', selectedLimit);
-    if (selectedMaxDuration) params.set('duration', selectedMaxDuration);
-    if (selectedTv) params.set('tv', selectedTv);
-
-    const selectedTypes = getSelectedConnectionTypes();
-    if (selectedTypes.length > 0) params.set('connection_types', selectedTypes.join(','));
-
-    const selectedProviders = getSelectedProviders();
-    if (selectedProviders.length > 0) params.set('providers', selectedProviders.join(','));
-
-    if (installCheckbox.checked) params.set('installation', 'true');
-    if (!showAllAgesCheckbox.checked && ageInput.value.trim() !== "") {
-        params.set('age', ageInput.value.trim());
-    }
-    if (selectedSort) params.set('sort', selectedSort);
-
-    // Update browser URL
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState({}, '', newUrl);
-}
-
-// --- Update summary text based on current offers ---
-function updateSummary(data) {
-    const providers = new Set(data.map(o => o.provider));
-    const summary = `Found ${data.length} offer${data.length !== 1 ? 's' : ''} from ${providers.size} provider${providers.size !== 1 ? 's' : ''}`;
-    document.getElementById('offers-summary').textContent = summary;
-}
-
-// --- Render pagination ---
-function renderPagination(totalOffers, pageSize) {
-    const totalPages = Math.ceil(totalOffers / pageSize);
-    const pagination = document.getElementById('pagination');
-    pagination.innerHTML = '';
-
-    if (totalPages <= 1) return;
-
-    for (let i = 1; i <= totalPages; i++) {
-        const li = document.createElement('li');
-        li.className = 'page-item' + (i === currentPage ? ' active' : '');
-        const btn = document.createElement('button');
-        btn.className = 'page-link';
-        btn.textContent = i;
-        btn.addEventListener('click', () => {
-            currentPage = i;
-            applyFiltersAndUpdateResults();
-            document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' });
-        });
-        li.appendChild(btn);
-        pagination.appendChild(li);
-    }
-}
+// Global state for current page and offers
+export const state = {
+    currentPage: 1,
+    allOffers: []
+};
 
 // --- Render offer cards in results area ---
-function updateResults(data) {
+export function updateResults(data) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
     // Pagination logic
-    const start = (currentPage - 1) * pageSize;
+    const start = (state.currentPage - 1) * pageSize;
     const end = start + pageSize;
     const pageOffers = data.slice(start, end);
 
@@ -249,83 +49,6 @@ function updateResults(data) {
     renderPagination(data.length, pageSize);
 }
 
-// --- On page load: initialize filters, restore state from URL, set up events ---
-document.addEventListener('DOMContentLoaded', () => {
-
-    // Prefill address fields from URL ONLY if present
-    const street = getParam('street', null);
-    const houseNumber = getParam('house_number', null);
-    const plz = getParam('plz', null);
-    const city = getParam('city', null);
-
-    if (street !== null) document.getElementById('street').value = street;
-    if (houseNumber !== null) document.getElementById('house_number').value = houseNumber;
-    if (plz !== null) document.getElementById('plz').value = plz;
-    if (city !== null) document.getElementById('city').value = city;
-
-    // Clear other address fields when PLZ changes
-    const plzInput = document.getElementById('plz');
-    const streetInput = document.getElementById('street');
-    const houseNumberInput = document.getElementById('house_number');
-    const cityInput = document.getElementById('city');
-
-    if (plzInput && streetInput && houseNumberInput && cityInput) {
-        plzInput.addEventListener('input', () => {
-            streetInput.value = '';
-            houseNumberInput.value = '';
-            cityInput.value = '';
-        });
-    }
-
-    // Search button event
-    const searchBtn = document.getElementById('search-btn');
-    if (searchBtn) {
-        searchBtn.addEventListener('click', triggerSearch);
-    }
-
-    // Restore filter state from URL and load snapshot if available
-    if (window.snapshotOffers && Array.isArray(window.snapshotOffers)) {
-        showMainContent();
-
-        allOffers = window.snapshotOffers;
-
-        if (window.snapshotFilters) {
-            setFilterState(window.snapshotFilters);
-        }
-        
-        applyFiltersAndUpdateResults();
-        updateSummary && updateSummary();
-        // Hide the loading spinner if present
-        const spinner = document.getElementById('loading-spinner');
-        if (spinner) spinner.style.display = 'none';
-        return; // Don't auto-trigger search if snapshot is loaded
-    }
-
-    // If all address fields are present, trigger search
-    if (street && houseNumber && plz && city) {
-        triggerSearch();
-    } else {
-        showSlogan(); // <--- Add this here
-    }
-
-    // Create share URL and set up sharing buttons
-    setupShare({
-        getOffers: () => allOffers,
-        getFilters: () => ({
-            speed: selectedSpeed,
-            limit: selectedLimit,
-            duration: selectedMaxDuration,
-            tv: selectedTv,
-            connection_types: getSelectedConnectionTypes(),
-            providers: getSelectedProviders(),
-            installation: installCheckbox.checked,
-            age: ageInput.value.trim(),
-            showAllAges: showAllAgesCheckbox.checked,
-            sort: selectedSort,
-        })
-    });
-});
-
 // --- Helper: get URL parameter or default ---
 function getParam(name, defaultValue) {
     const params = new URLSearchParams(window.location.search);
@@ -336,7 +59,7 @@ function getParam(name, defaultValue) {
 export function applyFiltersAndUpdateResults() {
     // Generate share URL each time filters are applied
     resetShareUrl();
-    let filtered = allOffers;
+    let filtered = state.allOffers;
 
     // Speed filter
     if (selectedSpeed) {
@@ -389,8 +112,8 @@ export function applyFiltersAndUpdateResults() {
     }
     
     // Only reset if the current page is out of range (e.g. after filtering reduces results)
-    if ((currentPage - 1) * pageSize >= filtered.length) {
-        currentPage = 1;
+    if ((state.currentPage - 1) * pageSize >= filtered.length) {
+        state.currentPage = 1;
     }
 
     updateSummary(filtered);
@@ -398,4 +121,83 @@ export function applyFiltersAndUpdateResults() {
     updateHistory();
 }
 
+// --- On page load: initialize filters, restore state from URL, set up events ---
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Prefill address fields from URL ONLY if present
+    const street = getParam('street', null);
+    const houseNumber = getParam('house_number', null);
+    const plz = getParam('plz', null);
+    const city = getParam('city', null);
+
+    if (street !== null) document.getElementById('street').value = street;
+    if (houseNumber !== null) document.getElementById('house_number').value = houseNumber;
+    if (plz !== null) document.getElementById('plz').value = plz;
+    if (city !== null) document.getElementById('city').value = city;
+
+    // Clear other address fields when PLZ changes
+    const plzInput = document.getElementById('plz');
+    const streetInput = document.getElementById('street');
+    const houseNumberInput = document.getElementById('house_number');
+    const cityInput = document.getElementById('city');
+
+    if (plzInput && streetInput && houseNumberInput && cityInput) {
+        plzInput.addEventListener('input', () => {
+            streetInput.value = '';
+            houseNumberInput.value = '';
+            cityInput.value = '';
+        });
+    }
+
+    // Search button event
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', triggerSearch);
+    }
+
+    // Restore filter state from URL and load snapshot if available
+    if (window.snapshotOffers && Array.isArray(window.snapshotOffers)) {
+        showMainContent();
+
+        state.allOffers = window.snapshotOffers;
+
+        if (window.snapshotFilters) {
+            setFilterState(window.snapshotFilters);
+        }
+        
+        applyFiltersAndUpdateResults();
+        updateSummary && updateSummary();
+        // Hide the loading spinner if present
+        const spinner = document.getElementById('loading-spinner');
+        if (spinner) spinner.style.display = 'none';
+        return; // Don't auto-trigger search if snapshot is loaded
+    }
+
+    // If all address fields are present, trigger search
+    if (street && houseNumber && plz && city) {
+        triggerSearch();
+    } else {
+        showSlogan(); // <--- Add this here
+    }
+
+    // Create share URL and set up sharing buttons
+    setupShare({
+        getOffers: () => state.allOffers,
+        getFilters: () => ({
+            speed: selectedSpeed,
+            limit: selectedLimit,
+            duration: selectedMaxDuration,
+            tv: selectedTv,
+            connection_types: getSelectedConnectionTypes(),
+            providers: getSelectedProviders(),
+            installation: installCheckbox.checked,
+            age: ageInput.value.trim(),
+            showAllAges: showAllAgesCheckbox.checked,
+            sort: selectedSort,
+        })
+    });
+});
+
+
 initFilters({ getParam, applyFiltersAndUpdateResults });
+

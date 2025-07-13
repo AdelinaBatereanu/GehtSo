@@ -13,8 +13,8 @@ const col = document.createElement('div');
 
         // Card hover effect
         col.addEventListener('mouseenter', () => {
-            col.querySelector('.card').style.borderColor = '#4927E0';
-            col.querySelector('.card').style.boxShadow = '0 0 0 2px #A8A8A9';
+            col.querySelector('.card').style.borderColor = '#ef8354';
+            col.querySelector('.card').style.boxShadow = 'none';
         });
         col.addEventListener('mouseleave', () => {
             col.querySelector('.card').style.borderColor = '';

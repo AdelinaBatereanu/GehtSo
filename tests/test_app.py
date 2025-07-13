@@ -15,11 +15,11 @@ def client():
 def test_index(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Enter your address to start comparing" in response.data
+    assert b"enter your address to start comparing" in response.data.lower()
 
 # Test the /autocomplete endpoint for plz suggestions
 def test_autocomplete_plz(client):
-    with patch("src.app.fetch_plz_suggestions") as mock_fetch:
+    with patch("src.app.autocomplete.fetch_plz_suggestions") as mock_fetch:
         mock_fetch.return_value = [{"display": "10115 Berlin", "postcode": "10115", "city": "Berlin"}]
         response = client.get("/autocomplete?q=1011&field=plz")
         assert response.status_code == 200

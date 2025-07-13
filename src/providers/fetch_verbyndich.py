@@ -5,6 +5,8 @@ import aiohttp
 import pandas as pd
 import numpy as np
 
+from .base import ProviderFetcher
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -110,24 +112,25 @@ def transform_offers(all_offers, provider="VerbynDich"):
     df = pd.DataFrame(offers_list)
     return df
 
-def get_offers(address_input):
-    """
-    Main function to fetch and transform offers from Verbyndich API
-    Args:
-        address_input = {
-                "street": "Hauptstraße",
-                "house_number": "5A",
-                "plz": "10115",
-                "city": "Berlin"
-            }
-    Returns:
-        pandas.DataFrame: DataFrame with the offers
-    """
-    address = ";".join([address_input[key] for key in ["street", "house_number", "city", "plz"]])
-    offers = asyncio.run(fetch_all_offers(address))
-    df = transform_offers(offers)
-    print(f"Found {len(df)} offers, Verbyndich")
-    return df
+class VerbynDichFetcher(ProviderFetcher):
+    def get_offers(self, address_input):
+        """
+        Main function to fetch and transform offers from Verbyndich API
+        Args:
+            address_input = {
+                    "street": "Hauptstraße",
+                    "house_number": "5A",
+                    "plz": "10115",
+                    "city": "Berlin"
+                }
+        Returns:
+            pandas.DataFrame: DataFrame with the offers
+        """
+        address = ";".join([address_input[key] for key in ["street", "house_number", "city", "plz"]])
+        offers = asyncio.run(fetch_all_offers(address))
+        df = transform_offers(offers)
+        print(f"Found {len(df)} offers, Verbyndich")
+        return df
         
 if __name__ == "__main__":
     address = {
@@ -136,6 +139,6 @@ if __name__ == "__main__":
             "plz": "10115",
             "city": "Berlin"
         }
-    df = get_offers(address)
+    df = VerbynDichFetcher.get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(10))

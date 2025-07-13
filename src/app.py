@@ -7,9 +7,10 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-from utils import make_api_safe, fetch_plz_suggestions, fetch_street_suggestions, validate_address, save_snapshot, load_snapshot
-from cache_utils import get_provider_data
-import compare_offers
+from .utils import autocomplete, cache_utils, for_string, snapshot, validation, data_access_utils
+# from cache_utils import get_provider_data
+from src.compare_offers import fill_columns
+from src.providers.registry import PROVIDER_FETCHERS
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY")
@@ -29,14 +30,14 @@ def get_offers():
 
     # Sanitize each field
     address = {
-        "street": make_api_safe(street),
-        "house_number": make_api_safe(house_number),
-        "plz": make_api_safe(plz),
-        "city": make_api_safe(city)
+        "street": for_string.make_api_safe(street),
+        "house_number": for_string.make_api_safe(house_number),
+        "plz": for_string.make_api_safe(plz),
+        "city": for_string.make_api_safe(city)
     }
 
      # Validate address
-    if not validate_address(street, house_number, plz, city):
+    if not validation.validate_address(street, house_number, plz, city):
         return jsonify({"error": "Invalid address."}), 400
     
     session['last_search'] = {
@@ -50,50 +51,22 @@ def get_offers():
         """Asynchronous generator to fetch and yield offers."""
         # Create a new event loop for the async generator
         loop = asyncio.get_event_loop()
+        # Fetch offers from all providers asynchronously
+        # Use the PROVIDER_FETCHERS dictionary to get the fetcher functions
         tasks = [
             loop.run_in_executor(
                 None,
-                lambda: get_provider_data(
-                    "ByteMe", address,
-                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_byteme_offers, address, "ByteMe")
+                lambda fetcher=fetcher: cache_utils.get_provider_data(
+                    name, address, lambda address=address: data_access_utils.safe_get_offers(fetcher.get_offers, address, name)
                 )
-            ),
-            loop.run_in_executor(
-                None,
-                lambda: get_provider_data(
-                    "Ping Perfect", address,
-                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_pingperfect_offers, address, "Ping Perfect")
-                )
-            ),
-            loop.run_in_executor(
-                None,
-                lambda: get_provider_data(
-                    "Servus Speed", address,
-                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_servusspeed_offers, address, "Servus Speed")
-                )
-            ),
-            loop.run_in_executor(
-                None,
-                lambda: get_provider_data(
-                    "VerbynDich", address,
-                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_verbyndich_offers, address, "VerbynDich")
-                )
-            ),
-            loop.run_in_executor(
-                None,
-                lambda: get_provider_data(
-                    "WebWunder", address,
-                    lambda address=address: compare_offers.safe_get_offers(compare_offers.get_webwunder_offers, address, "WebWunder")
-                )
-            ),
+            )
+            for name, fetcher in PROVIDER_FETCHERS.items()
         ]
         # for each provider, create a task to fetch offers
         for coro in asyncio.as_completed(tasks):
             df = await coro
-
             # --- Handle missing values for this provider ---
-            df = compare_offers.fill_columns(df)
-
+            df = fill_columns(df)
             # --- Convert DataFrame to JSON and yield each offer ---
             for offer in df.to_dict(orient="records"):
                 yield json.dumps(offer) + '\n'
@@ -134,7 +107,7 @@ def create_share():
         return jsonify({'error': 'No offers provided'}), 400
     snapshot_id = str(uuid4())
     # Store the offers and filters in a snapshot
-    save_snapshot(snapshot_id, {"offers": offers, "filters": filters})    
+    snapshot.save_snapshot(snapshot_id, {"offers": offers, "filters": filters})    
     # Generate a shareable URL for the snapshot
     share_url = url_for('view_share', snapshot_id=snapshot_id, _external=True)
     return jsonify({'share_url': share_url}), 201
@@ -143,12 +116,12 @@ def create_share():
 @app.route("/share/<snapshot_id>")
 def view_share(snapshot_id):
     # Load the snapshot by ID
-    snapshot = load_snapshot(snapshot_id)
-    if not snapshot:
+    snapshot_data = snapshot.load_snapshot(snapshot_id)
+    if not snapshot_data:
         return abort(404, description="Page not found")
     # Render the offers and filters from the snapshot
-    offers = snapshot.get("offers", [])
-    filters = snapshot.get("filters", {})
+    offers = snapshot_data.get("offers", [])
+    filters = snapshot_data.get("filters", {})
     last_search = {}
     return render_template("index.html", offers=offers, filters=filters, snapshot_id=snapshot_id, last_search=last_search)
 
@@ -162,12 +135,12 @@ def autocomplete_api():
         return jsonify([]), 400
     # --- Fetch suggestions based on the field ---
     if field == "plz":
-        suggestions = fetch_plz_suggestions(q)
+        suggestions = autocomplete.fetch_plz_suggestions(q)
     else:  # field == "street"
         city = request.args.get("city", "").strip()
         if not city:
             return jsonify([]), 400
-        suggestions = fetch_street_suggestions(q, city)
+        suggestions = autocomplete.fetch_street_suggestions(q, city)
 
     return jsonify(suggestions)
 

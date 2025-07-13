@@ -7,6 +7,8 @@ import json
 import pandas as pd
 import numpy as np
 
+from .base import ProviderFetcher
+
 from dotenv import load_dotenv
 load_dotenv() 
 
@@ -107,33 +109,34 @@ def transform_offer(offer):
         "limit_from_gb":        info.get("limitFrom") if info.get("limitFrom") else np.nan,
     }
 
-def get_offers(address):
-    """
-    Fetch and transform offers for a given address.
-    Args:
-        adress = {
-            "street": str,
-            "house_number": str,
-            "plz": str,
-            "city": str
-        }
-    Returns:
-        pd.DataFrame
-    """
-    # fetch fiber and non-fiber offers separately
-    fiber_offers = fetch_offers(address, True)
-    non_fiber_offers = fetch_offers(address, False)
-    # create one list of offers
-    offers = fiber_offers + non_fiber_offers
+class PingPerfectFetcher(ProviderFetcher):
+    def get_offers(self, address):
+        """
+        Fetch and transform offers for a given address.
+        Args:
+            adress = {
+                "street": str,
+                "house_number": str,
+                "plz": str,
+                "city": str
+            }
+        Returns:
+            pd.DataFrame
+        """
+        # fetch fiber and non-fiber offers separately
+        fiber_offers = fetch_offers(address, True)
+        non_fiber_offers = fetch_offers(address, False)
+        # create one list of offers
+        offers = fiber_offers + non_fiber_offers
 
-    normalized_offers = []
-    for offer in offers:
-        normalized = transform_offer(offer)
-        normalized_offers.append(normalized)
+        normalized_offers = []
+        for offer in offers:
+            normalized = transform_offer(offer)
+            normalized_offers.append(normalized)
 
-    df = pd.DataFrame(normalized_offers)
-    print(f"Fetched {len(df)} offers from Ping Perfect API.")
-    return df
+        df = pd.DataFrame(normalized_offers)
+        print(f"Fetched {len(df)} offers from Ping Perfect API.")
+        return df
 
 if __name__ == "__main__":
     address = {
@@ -142,6 +145,6 @@ if __name__ == "__main__":
             "plz": "10115",
             "city": "Berlin"
             }
-    df = get_offers(address)
+    df = PingPerfectFetcher().get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(15))

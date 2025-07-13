@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import numpy as np
 
+from .base import ProviderFetcher
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -139,33 +141,34 @@ def parse_offers(response):
     df = pd.DataFrame(parsed)
     return df
 
-def get_offers(address_input):
-    """
-    Main function to fetch and transform offers from WebWunder API
-    """
-    address = {
-        "street": address_input["street"],
-        "houseNumber": address_input["house_number"],
-        "city": address_input["city"],
-        "plz": address_input["plz"],
-        "countryCode": "DE"
-    }
+class WebWunderFetcher(ProviderFetcher):
+    def get_offers(self, address_input):
+        """
+        Main function to fetch and transform offers from WebWunder API
+        """
+        address = {
+            "street": address_input["street"],
+            "houseNumber": address_input["house_number"],
+            "city": address_input["city"],
+            "plz": address_input["plz"],
+            "countryCode": "DE"
+        }
 
-    all_offers = []
-    # Fetch offers for all connection types and installation options
-    print("Fetching offers for WebWunder")
-    #TODO: make this async
-    connection_types = ["fiber", "dsl", "cable"]
-    for connection_type in connection_types:
-        for installation in [True, False]:
-            response = fetch_offers(installation, connection_type, address)
-            offers = parse_offers(response)
-            offers["installation_included"] = installation
-            all_offers.append(offers)
+        all_offers = []
+        # Fetch offers for all connection types and installation options
+        print("Fetching offers for WebWunder")
+        #TODO: make this async
+        connection_types = ["fiber", "dsl", "cable"]
+        for connection_type in connection_types:
+            for installation in [True, False]:
+                response = fetch_offers(installation, connection_type, address)
+                offers = parse_offers(response)
+                offers["installation_included"] = installation
+                all_offers.append(offers)
 
-    df = pd.concat(all_offers, ignore_index=True)
-    print(f"Found {len(df)} offers, Webwunder")
-    return df
+        df = pd.concat(all_offers, ignore_index=True)
+        print(f"Found {len(df)} offers, Webwunder")
+        return df
 
 if __name__ == "__main__":
     address = {
@@ -174,6 +177,6 @@ if __name__ == "__main__":
         "plz": "10115",
         "city": "Berlin"
     }
-    df = get_offers(address)
+    df = WebWunderFetcher.get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(40))

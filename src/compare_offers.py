@@ -1,6 +1,4 @@
 import asyncio
-import time
-import logging
 
 import nest_asyncio
 nest_asyncio.apply()
@@ -9,33 +7,13 @@ import pandas as pd
 pd.set_option('future.no_silent_downcasting', True)
 import numpy as np
 
-from providers.fetch_byteme import get_offers as get_byteme_offers
-from providers.fetch_pingperfect import get_offers as get_pingperfect_offers
-from providers.fetch_servusspeed import get_offers as get_servusspeed_offers
-from providers.fetch_verbyndich import get_offers as get_verbyndich_offers
-from providers.fetch_webwunder import get_offers as get_webwunder_offers
+from src.utils.data_access_utils import safe_get_offers
 
-MAX_RETRIES = 3
-RETRY_BACKOFF = 5  # seconds
-
-def safe_get_offers(get_offers_func, address, provider_name):
-    """
-    Fetch offers with retry logic.
-    Args:
-        get_offers_func (function): Function to fetch offers.
-        address (dict): Address to fetch offers for.
-        provider_name (str): Name of the provider for logging.
-    """
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            return get_offers_func(address)
-        except Exception as e:
-            logging.error(f"[{provider_name}] Attempt {attempt} failed: {e}")
-            if attempt < MAX_RETRIES:
-                time.sleep(RETRY_BACKOFF ** attempt)
-            else:
-                logging.error(f"[{provider_name}] All retries failed. Returning empty DataFrame.")
-                return pd.DataFrame()
+from src.providers.fetch_byteme import ByteMeFetcher
+from src.providers.fetch_pingperfect import PingPerfectFetcher
+from src.providers.fetch_servusspeed import ServusSpeedFetcher
+from src.providers.fetch_verbyndich import VerbynDichFetcher
+from src.providers.fetch_webwunder import WebWunderFetcher
 
 async def fetch_offers(address):
     """
@@ -47,11 +25,11 @@ async def fetch_offers(address):
     """
     loop = asyncio.get_event_loop()
     tasks = [
-        loop.run_in_executor(None, safe_get_offers, get_pingperfect_offers, address, "Ping Perfect"),
-        loop.run_in_executor(None, safe_get_offers, get_servusspeed_offers, address, "Servus Speed"),
-        loop.run_in_executor(None, safe_get_offers, get_verbyndich_offers, address, "VerbynDich"),
-        loop.run_in_executor(None, safe_get_offers, get_webwunder_offers, address, "WebWunder"),
-        loop.run_in_executor(None, safe_get_offers, get_byteme_offers, address, "ByteMe"),
+        loop.run_in_executor(None, safe_get_offers, PingPerfectFetcher().get_offers, address, "Ping Perfect"),
+        loop.run_in_executor(None, safe_get_offers, ServusSpeedFetcher.get_offers, address, "Servus Speed"),
+        loop.run_in_executor(None, safe_get_offers, VerbynDichFetcher.get_offers, address, "VerbynDich"),
+        loop.run_in_executor(None, safe_get_offers, WebWunderFetcher.get_offers, address, "WebWunder"),
+        loop.run_in_executor(None, safe_get_offers, ByteMeFetcher.get_offers, address, "ByteMe"),
     ]
     return await asyncio.gather(*tasks)
 
@@ -85,7 +63,12 @@ def fill_columns(df):
     df = df.replace({np.nan: None})
     return df
 
-"""Filtering and sorting functions for offers DataFrame."""
+def aggregate_offers(address):
+    dfs = asyncio.run(fetch_offers(address))
+    all_offers = pd.concat(dfs, ignore_index=True)
+    return fill_columns(all_offers)
+
+"""Filtering and sorting functions for offers DataFrame. (not used in the main script, but can be used for further processing)"""
 
 def filter_speed(df, min_speed):
     return df[df["speed_mbps"] >= min_speed]
@@ -152,10 +135,7 @@ if __name__ == "__main__":
         "plz": "10115",
         "city": "Berlin"
     }
-    df_verbyndich, df_byteme, df_pingperfect, df_servusspeed, df_webwunder = asyncio.run(fetch_offers(address))   
-    all_offers = pd.concat(
-        [df_byteme, df_pingperfect, df_servusspeed, df_verbyndich, df_webwunder],
-        ignore_index=True
-    )
-    # Save DataFrame to CSV for checking
-    all_offers.to_csv("df_check.csv", index=False)
+    all_offers = aggregate_offers(address)
+    print(all_offers.head())
+    # Save DataFrame to CSV for checking (used for development purposes))
+    # all_offers.to_csv("df_check.csv", index=False)

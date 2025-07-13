@@ -1,6 +1,10 @@
 import pandas as pd
 import pytest
-from src.providers import fetch_byteme, fetch_pingperfect, fetch_servusspeed, fetch_verbyndich, fetch_webwunder
+from src.providers.fetch_byteme import ByteMeFetcher
+from src.providers.fetch_pingperfect import PingPerfectFetcher
+from src.providers.fetch_servusspeed import ServusSpeedFetcher
+from src.providers.fetch_verbyndich import VerbynDichFetcher
+from src.providers.fetch_webwunder import WebWunderFetcher
 
 ADDRESS = {
     "street": "Hauptstrasse",
@@ -9,16 +13,16 @@ ADDRESS = {
     "city": "Berlin"
 }
 
-@pytest.mark.parametrize("provider_func", [
-    fetch_byteme.get_offers,
-    fetch_pingperfect.get_offers,
-    fetch_servusspeed.get_offers,
-    fetch_verbyndich.get_offers,
-    fetch_webwunder.get_offers,
+@pytest.mark.parametrize("provider_instance", [
+    ByteMeFetcher(),
+    PingPerfectFetcher(),
+    ServusSpeedFetcher(),
+    VerbynDichFetcher(),
+    WebWunderFetcher(),
 ])
 # Test that each provider function returns a DataFrame with minimal expected columns
-def test_provider_returns_dataframe(provider_func):
-    df = provider_func(ADDRESS)
+def test_provider_returns_dataframe(provider_instance):
+    df = provider_instance.get_offers(ADDRESS)
     assert isinstance(df, pd.DataFrame)
     # Check for at least some expected columns
     for col in ["provider", "name", "cost_eur", "speed_mbps", 

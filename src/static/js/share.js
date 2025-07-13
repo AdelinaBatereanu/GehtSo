@@ -1,3 +1,4 @@
+// --- Share functionality ---
 let lastShareUrl = null;
 
 export function setupShare({ getOffers, getFilters } = {}) {

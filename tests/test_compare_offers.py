@@ -1,26 +1,18 @@
 import pandas as pd
 import numpy as np
-import asyncio
 import pytest
-from src.compare_offers import (fill_columns, fetch_offers, 
+from src.compare_offers import (fill_columns,
                                 filter_speed, filter_duration, filter_tv, filter_connection_types, 
                                 filter_installation, filter_limit, filter_provider, filter_age,
                                 sort_by_after_two_years_cost, sort_by_first_years_cost, sort_by_speed
                                 )
+from src.providers.fetch_byteme import ByteMeFetcher
+from src.providers.fetch_pingperfect import PingPerfectFetcher
+from src.providers.fetch_servusspeed import ServusSpeedFetcher
+from src.providers.fetch_verbyndich import VerbynDichFetcher
+from src.providers.fetch_webwunder import WebWunderFetcher
 
 # ---Test cases for the compare_offers module---
-# Test that fetch_offers returns a DataFrame
-def test_fetch_offers_returns_dataframes():
-    address = {
-        "street": "Hauptstrasse",
-        "house_number": "5A",
-        "plz": "10115",
-        "city": "Berlin"
-    }
-    dfs = asyncio.run(fetch_offers(address))
-    assert isinstance(dfs, list)
-    for df in dfs:
-        assert isinstance(df, pd.DataFrame)
 
 # Test that fill_columns replaces NaN and pd.NA with None
 def test_fill_columns_no_nan_or_pdna():

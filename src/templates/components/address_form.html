@@ -1,0 +1,57 @@
+<!-- Right card: Address form -->
+<div class="col-md-6 d-flex">
+    <div class="card flex-fill pt-5 pb-3 px-3 d-flex flex-column justify-content-center">
+        <form id="address-form">
+            <!-- PLZ and City -->
+            <div class="row g-2">
+                <div class="col-md-6 position-relative">
+                    <input class="form-control" type="text" id="plz" name="plz" placeholder="PLZ" autocomplete="off" value="{{ last_search.plz or '' }}">
+                    <ul id="plz-suggestions" class="suggestions"></ul>
+                </div>
+                <div class="col-md-6">
+                    <input class="form-control" type="text" id="city" name="city" placeholder="City" value="{{ last_search.city or '' }}">
+                </div>
+            </div>
+            <!-- Street and House Number -->
+            <div class="row g-2 mt-2">
+                <div class="col-md-8 position-relative">
+                    <input class="form-control" type="text" id="street" name="street" placeholder="Street" autocomplete="off" value="{{ last_search.street or '' }}">
+                    <ul id="street-suggestions" class="suggestions"></ul>
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control" type="text" id="house_number" name="house_number" placeholder="Nr." value="{{ last_search.house_number or '' }}">
+                </div>
+            </div>
+            <!-- Age and Show All Offers -->
+            <div class="row g-2 mt-2 align-items-center">
+                <div class="col-md-6">
+                    <input class="form-control" type="number" id="age_input" min="0" placeholder="Age (optional)">
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <span tabindex="0" class="me-2" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                            title="Some offers are only available for people under a certain age. By entering your age you ensure that you only see the offers available to you.">
+                            <span class="custom-question-circle">
+                            <span class="qm-small">?</span>
+                            </span>
+                    </span>
+                    <input type="checkbox" id="show_all_ages" class="form-check-input me-2" checked>
+                    <label class="form-check-label" for="show_all_ages">Show me all offers</label>
+                </div>
+            </div>
+            <!-- Search Button -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button id="search-btn" type="button" class="btn btn-primary w-100">Search</button>
+                </div>
+            </div>
+            <!-- Error message -->
+            <div class="row mt-1">
+                <div class="col">
+                    <div id="address-error-container" style="min-height:2em;" class="mb-2">
+                        <div id="address-error" class="text-danger d-none small" role="alert"></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

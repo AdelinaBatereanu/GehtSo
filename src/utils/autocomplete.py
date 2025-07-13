@@ -1,23 +1,9 @@
-import unicodedata
-from urllib.parse import quote_plus
 import requests
 import os
 import json
 
-# Encode a string to be safe for API usage
-def make_api_safe(string):
-    string = string.replace("ß", "ss")
-    normalized = unicodedata.normalize('NFKD', string)
-    no_accents = normalized.encode('ascii', 'ignore').decode('ascii')
-    return quote_plus(no_accents)
-
-# Convert a string to a boolean value
-def str2bool(value):
-    return str(value).lower() in ["true", "1", "yes", "y"]
-
-# --- Automatic Address Suggestions ---
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-HEADERS = {"User-Agent": "CHECK24-challenge-Autocomplete/0.1 (adelinabatereanu@gmail.com)"}
+NOMINATIM_URL = os.getenv("NOMINATIM_URL")
+HEADERS = json.loads(os.getenv("HEADERS"))
 
 def fetch_plz_suggestions(query):
     """
@@ -85,39 +71,3 @@ def fetch_street_suggestions(query, city):
             seen.add(street)
             suggestions.append({"display": street})
     return suggestions
-
-# --- Address Validation ---
-def validate_address(street, house_number, plz, city):
-    """
-    Returns True if the address exists according to Nominatim, else False.
-    """
-    params = {
-        "street": f"{house_number} {street}",
-        "city": city,
-        "postalcode": plz,
-        "countrycodes": "de",
-        "format": "json",
-        "limit": 1
-    }
-    resp = requests.get(NOMINATIM_URL, params=params, headers=HEADERS)
-    resp.raise_for_status()
-    results = resp.json()
-    return bool(results)
-
-# --- Snapshot Management ---
-# Create a directory to store snapshots if it doesn't exist
-SNAPSHOT_DIR = os.path.join(os.path.dirname(__file__), "snapshots")
-# Ensure the snapshot directory exists
-os.makedirs(SNAPSHOT_DIR, exist_ok=True)
-# This directory is used to store snapshots of offers
-def save_snapshot(snapshot_id, data):
-    path = os.path.join(SNAPSHOT_DIR, f"{snapshot_id}.json")
-    with open(path, "w") as f:
-        json.dump(data, f)
-# Load a snapshot by its ID
-def load_snapshot(snapshot_id):
-    path = os.path.join(SNAPSHOT_DIR, f"{snapshot_id}.json")
-    if not os.path.exists(path):
-        return None
-    with open(path) as f:
-        return json.load(f)

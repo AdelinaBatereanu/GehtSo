@@ -4,6 +4,8 @@ import os
 import pandas as pd
 import numpy as np
 
+from .base import ProviderFetcher
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -76,7 +78,6 @@ def transform_offers(offers):
         voucher_percent, unlimited, limit_from_gb
     """
     offers['provider'] = 'ByteMe'
-    offers['product_id'] = offers['productId']
     offers['name'] = offers['providerName']
     offers['speed_mbps'] = offers['speed'].astype(int)
     offers['cost_eur'] = offers['monthlyCostInCent'].astype(float) / 100
@@ -104,36 +105,37 @@ def transform_offers(offers):
     offers['limit_from_gb'] = offers.apply(get_limit, axis=1).astype(int)
 
     order = [
-        'provider', 'product_id', 'name', 'speed_mbps', 'cost_eur', 'promo_price_eur', 'duration_months',
+        'provider', 'name', 'speed_mbps', 'cost_eur', 'promo_price_eur', 'duration_months',
         'after_two_years_eur', 'connection_type', 'installation_included', 'tv',
         'max_age', 'voucher_fixed_eur', 'voucher_percent', 'limit_from_gb'
     ]
     return offers[order]
 
-def get_offers(address_input):
-    """
-    Fetches offers and creates a pandas.DataFrame with the offers in standardized format
-    Args: 
-        address_input = {
-                "street": str,
-                "house_number": str,
-                "plz": str,
-                "city": str
-                } 
-    Return:
-        pandas.DataFrame: A DataFrame with the offers
-    """
-    address = {
-            "street": address_input["street"],
-            "houseNumber": address_input["house_number"],
-            "city": address_input["city"],
-            "plz": address_input["plz"]
-        }
-    offers = fetch_offers(address)
-    parsed_offers = transform_offers(offers)
-    df = pd.DataFrame(parsed_offers)
-    print(f"Fetched {len(df)} offers from ByteMe API")
-    return df
+class ByteMeFetcher(ProviderFetcher):
+    def get_offers(self, address_input):
+        """
+        Fetches offers and creates a pandas.DataFrame with the offers in standardized format
+        Args: 
+            address_input = {
+                    "street": str,
+                    "house_number": str,
+                    "plz": str,
+                    "city": str
+                    } 
+        Return:
+            pandas.DataFrame: A DataFrame with the offers
+        """
+        address = {
+                "street": address_input["street"],
+                "houseNumber": address_input["house_number"],
+                "city": address_input["city"],
+                "plz": address_input["plz"]
+            }
+        offers = fetch_offers(address)
+        parsed_offers = transform_offers(offers)
+        df = pd.DataFrame(parsed_offers)
+        print(f"Fetched {len(df)} offers from ByteMe API")
+        return df
 
 if __name__ == "__main__":
     address = {
@@ -142,7 +144,7 @@ if __name__ == "__main__":
             "plz": "10115",
             "city": "Berlin"
             }
-    df = get_offers(address)
+    df = ByteMeFetcher().get_offers(address)
     pd.set_option('display.max_columns', None)
     print(df.head(20)) 
 
