@@ -1,16 +1,22 @@
 /* Montserrat font */
 body {
-    font-family: 'Montserrat', Arial, sans-serif;
-    background: #212529;
-    color: #fff !important;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 300; 
+    background: #fff;
+    color: #2d3142 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+ font-family: 'Archivo', sans-serif;
+ font-weight: 600;
 }
 
 header {
-    background: #d1a8dc !important;
-    color: #fff !important;
+    background: #ef8354 !important;
+    color: #fff;
 }
 header h1 {
-    color: #fff !important;
+    color: #000 !important;
 }
 
 /* basic card settings */
@@ -18,27 +24,34 @@ header h1 {
 .card-body,
 .card-header,
 .card-footer {
-    background: #4927e0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+}
+
+.left-card-bg {
+    background: #ef8354 !important; /* Example color */
     color: #fff !important;
-    border: none;
+    border: none !important;
 }
 
 .text-primary {
-    color: #4927e0 !important;
+    color: #000 !important;
 }
 
 /* slogan */
 .slogan {
-    color: #fff !important;
+    color: #ef8354 !important;
 }
 
 /* address forms */
 .form-control {
-    background: #dfdfdf !important;
+    background: #fff !important;
     color: #000 !important;
+    border-color: #000;
 }
 .form-control:focus {
-    border-color: transparent !important;
+    border-color: #000 !important;
     box-shadow: none !important;
 }
 
@@ -54,7 +67,7 @@ ul.suggestions {
     list-style: none;
     max-height: 200px;
     overflow-y: auto;
-    background: #dfdfdf;
+    background: #fff;
     color: #000 !important;
     z-index: 1000;
     border: none;
@@ -64,31 +77,34 @@ ul.suggestions li {
     cursor: pointer;
 }
 ul.suggestions li:hover {
-    background-color: #f8f9fa;
+    background-color: #feece4;
 }
 
 /* search button (basic button style) */
 .btn-primary {
-    background: #d1a8dc !important;
-    color: #000 !important;
+    background: #ef8354 !important;
+    color: #fff !important;
+    border-color: #ef8354;
 }
 .btn-primary:hover,
 .btn-primary:focus,
 .btn-primary.active {
-    background: #fa9a1c !important;
-    color: #000 !important;
+    background: #000 !important;
+    color: #fff !important;
+    border-color: #000;
 }
 
 /* form checkboxes */
 .form-check-input:checked {
-    background-color: #fa9a1c !important;
-    border-color: #fa9a1c !important;
+    background-color: #ef8354 !important;
+    border-color: #ef8354 !important;
     outline: none !important;
     box-shadow: none !important;
 }
 .form-check-input {
-    background-color: #dfdfdf !important; /* default color */
-    border-color: #dfdfdf !important;
+    color: #000 !important;
+    background-color: #ffd1bf !important; /* default color */
+    border-color: transparent !important;
     outline: none !important;
     box-shadow: none !important;
 }
@@ -100,7 +116,7 @@ ul.suggestions li:hover {
 
 /* filters section */
 #filters.card {
-    background: #d1a8dc !important;
+    background: #fff !important;
     color: #000 !important;
     padding-left: 0.2rem;
     padding-right: 0.5rem;
@@ -116,24 +132,24 @@ ul.suggestions li:hover {
 }
 #filters .btn:hover,
 #filters .btn.active {
-    color: #d1a8dc !important;
+    color: #fff !important;
 }
 
 #filters .form-check-input:checked {
-    background-color: #4927e0 !important;
-    border-color: #4927e0 !important;
+    background-color: #ef8354 !important;
+    border-color: #ef8354 !important;
     outline: none !important;
     box-shadow: none !important;
 }
 /* spinner */
 .spinner-border {
-    color: #fa9a1c !important;
+    color: #ef8354 !important;
 }
 
 /* sorting dropdown */
 #sort_by.form-select {
     background-color: transparent !important;
-    color: #fff !important;
+    color: #000 !important;
     border: none !important;
     font-size: 1em;
 }
@@ -144,14 +160,15 @@ ul.suggestions li:hover {
 
 /* share section */
 .share-btn {
-    color: #fa9a1c;
+    color: #ef8354;
     font-size: 0.95em;
 }
 .share-btn:hover {
-    color: #ff4d00;
+    color: #ef8354 !important;
+    text-decoration: underline !important;
 }
 .share-btn:active {
-    color: #4927e0 !important;
+    color: #5c5c5c !important;
 }
 .copied-feedback {
   color: #5c5c5c !important;
@@ -162,16 +179,21 @@ ul.suggestions li:hover {
     min-height: 1180px;
 }
 #results .card {
-    background: #dfdfdf !important;
+    background: #fff !important;
     color: #000 !important;
 }
+#results .card:hover {
+    border-color: #9a9a9a !important;
+    box-shadow: none !important;
+}
+
 .product-title,
 .fs-5.fw-700 {
-    color: #4927e0 !important;
+    color: #000 !important;
 }
 .text-danger,
 .text-danger * {
-    color: #ff4d00 !important;
+    color: #ef8354 !important;
 }
 
 /* question mark for tooltip (age) */
@@ -184,14 +206,14 @@ ul.suggestions li:hover {
     cursor: pointer;
     width: 1.2em;
     height: 1.2em;
-    border: 1px solid #dfdfdf !important;
+    border: 1px solid #2d3142 !important;
     border-radius: 50%;
-    color: #dfdfdf !important;
+    color: #2d3142 !important;
 }
 .custom-question-circle:hover,
 .custom-question-circle:focus {
-    border-color: #fa9a1c !important;
-    color: #fa9a1c !important;
+    border-color: #ef8354 !important;
+    color: #ef8354 !important;
 }
 .qm-small {
     font-size: 0.9em;
@@ -203,25 +225,25 @@ ul.suggestions li:hover {
     width: 1.3em;
     height: 1.3em;
     border: 0.95px solid;
-    border-color: #6c757d !important;
+    border-color: #2d3142 !important;
     border-radius: 50%;
-    color: #6c757d !important;
+    color: #2d3142 !important;
     font-size: 0.85em;
     font-weight: 500;
     margin-left: 0.3em;
 }
 .encircled-qm:hover,
 .encircled-qm:focus {
-    border-color: #fa9a1c !important;
-    color: #fa9a1c !important;
+    border-color: #ef8354 !important;
+    color: #ef8354 !important;
     background: transparent !important;
 }
 
 /* tooltips and popovers */
 .tooltip-inner,
 .popover {
-    background-color: #fa9a1c !important;
-    color: #000 !important;
+    background-color: #ef8354 !important;
+    color: #fff !important;
 }
 
 .popover {
@@ -230,18 +252,19 @@ ul.suggestions li:hover {
 
 /* pagination bar */
 .pagination .page-link {
-    color: #212529; 
-    background-color: #dfdfdf;
-    border: 1px solid #6c757d;
+    color: #000; 
+    background-color: #fff;
+    border: none;
 }
 .pagination .page-item.active .page-link {
-    color: #d1a8dc;
-    background-color: #4927e0;
-    border-color: #4927e0;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    text-decoration: underline;
 }
 .pagination .page-link:hover {
-    color: #212529;
-    background-color: #d1a8dc;
-    border-color: #6c757d;
+    color: #ef8354;
+    background-color: #fff;
+    border: none;
 }
 

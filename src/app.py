@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-from .utils import autocomplete, cache_utils, for_string, snapshot, validation, data_access_utils
+from src.utils import autocomplete, cache_utils, for_string, snapshot, validation, data_access_utils
 # from cache_utils import get_provider_data
 from src.compare_offers import fill_columns
 from src.providers.registry import PROVIDER_FETCHERS
