@@ -27,5 +27,6 @@ df_check.csv
 # Snapshots (for share)
 snapshots/
 
-# Cache files
-cache/
+# Cache files --- this line is commented out for demo purposes (to load data from cache after the providers are down) ---
+# --- add this line back to .gitignore if you don't want your cache pushed to git ---
+# cache/

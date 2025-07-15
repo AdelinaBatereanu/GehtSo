@@ -61,5 +61,7 @@ def get_provider_data(provider_name, address, fetch_func):
     if data is not None:
         return data
     data = fetch_func(address)
-    save_to_cache(provider_name, address, data)
+    # Only save to cache if data is a non-empty DataFrame
+    if isinstance(data, pd.DataFrame) and not data.empty:
+        save_to_cache(provider_name, address, data)
     return data
