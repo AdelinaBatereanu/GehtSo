@@ -41,6 +41,8 @@ pip install -r requirements.txt
 
 4. **Set up environment variables:**
 
+*Note:* add `cache/` to .gitignore if you don't want your cache pushed to the git. In this project that line is commented out for demo purposes.
+
 - Create a file named `.env` in the project root directory.
 - Add your API keys and credentials for all providers to this file
 
